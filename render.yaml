@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: vertex-booster
+    runtime: node
+    repo: https://github.com/pastorjohn046-create/boost
+    plan: starter
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    pullRequestPreviewsEnabled: true
+    regions:
+      - frankfurt
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PRIMESMM_API_URL
+        value: https://smmwiz.com/api/v2
+      - key: PRIMESMM_API_KEY
+        value: 1df4fbf1425ea6b145c434ffca63731e
+      - key: PRICE_MARKUP
+        value: 2.5
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+      - key: VTUNG_USERNAME
+        sync: false
+      - key: VTUNG_PASSWORD
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: WEBHOOK_URL
+        sync: false
