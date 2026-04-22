@@ -245,8 +245,8 @@ async function getTransactions(limit = 100) {
     return data || [];
 }
 
-function addTransaction(type, amount, description, status = 'success', metadata = {}) {
-    const wallet = readWallet();
+async function addTransaction(type, amount, description, status = 'success', metadata = {}) {
+    const wallet = await readWallet();
     const txn = {
         id: 'TXN_' + Math.floor(Math.random() * 1000000),
         type,
@@ -264,7 +264,7 @@ function addTransaction(type, amount, description, status = 'success', metadata 
         wallet.balance += amount;
         wallet.totalFunded += amount;
     }
-    writeWallet(wallet);
+    await writeWallet(wallet);
     return txn;
 }
 
@@ -959,7 +959,7 @@ const server = http.createServer(async (req, res) => {
                 // Deduct from wallet
                 const svc = servicesCache.services.find(s => String(s.id) === String(service));
                 const cost = svc ? (parseFloat(svc.rate) / 1000) * qty : 0;
-                addTransaction('spend', cost, `Order #${data.order}: ${svc ? svc.name : 'SMM Service'}`, 'success', { orderId: data.order });
+                await addTransaction('spend', cost, `Order #${data.order}: ${svc ? svc.name : 'SMM Service'}`, 'success', { orderId: data.order });
                 
                 return sendJSON(res, 200, { success: true, orderId: data.order, cost });
             } else if (data.error) {
@@ -1014,23 +1014,23 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
-    // ---- API: Wallet Info ----
+// ---- API: Wallet Info ----
     if (pathname === '/api/wallet/balance' && req.method === 'GET') {
         try {
-            const wallet = readWallet();
+            const wallet = await readWallet();
             return sendJSON(res, 200, { success: true, data: wallet });
         } catch (err) {
             return sendJSON(res, 500, { success: false, error: 'Failed to read wallet' });
         }
     }
-
+    
     // ---- API: Purchase VTU / Bill (Airtime/Data via Peyflex) ----
     if (pathname === '/api/purchase/vtu' && req.method === 'POST') {
         try {
             const body = await parseBody(req);
             const { type, network, phone, amount, dataPlan, cablePlan, meterNumber, meterType, service } = body;
             
-            const wallet = readWallet();
+            const wallet = await readWallet();
             
             if (type === 'airtime') {
                 if (!phone || !network || !amount || amount < 50) {
@@ -1041,7 +1041,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexAirtime(phone, network, amount);
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    addTransaction('spend', parseFloat(amount), `Airtime Topup (${network.toUpperCase()}): ${phone}`);
+                    await addTransaction('spend', parseFloat(amount), `Airtime Topup (${network.toUpperCase()}): ${phone}`);
                     return sendJSON(res, 200, { success: true, message: 'Airtime purchased successfully', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Airtime purchase failed' });
@@ -1055,7 +1055,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexData(phone, network, dataPlan);
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    addTransaction('spend', parseFloat(amount || 0), `Data Bundle (${network.toUpperCase()}): ${phone}`);
+                    await addTransaction('spend', parseFloat(amount || 0), `Data Bundle (${network.toUpperCase()}): ${phone}`);
                     return sendJSON(res, 200, { success: true, message: 'Data purchased successfully', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Data purchase failed' });
@@ -1069,7 +1069,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexCableTv(phone, cablePlan, service || 'dstv');
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    addTransaction('spend', parseFloat(amount || 0), `Cable TV (${cablePlan}): ${phone}`);
+                    await addTransaction('spend', parseFloat(amount || 0), `Cable TV (${cablePlan}): ${phone}`);
                     return sendJSON(res, 200, { success: true, message: 'Cable TV subscription successful', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Cable TV purchase failed' });
@@ -1083,7 +1083,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexElectricity(meterNumber, meterType, amount, service || 'ikeja');
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    addTransaction('spend', parseFloat(amount), `Electricity (${meterType}): ${meterNumber}`);
+                    await addTransaction('spend', parseFloat(amount), `Electricity (${meterType}): ${meterNumber}`);
                     return sendJSON(res, 200, { success: true, message: 'Electricity bill paid successfully', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Electricity payment failed' });
@@ -1180,10 +1180,10 @@ const server = http.createServer(async (req, res) => {
             const { accountName, price } = body;
             
             const cost = parseFloat(price.replace(/[^0-9.]/g, ''));
-            const wallet = readWallet();
+            const wallet = await readWallet();
             if (wallet.balance < cost) return sendJSON(res, 400, { success: false, error: 'Insufficient balance' });
             
-            addTransaction('spend', cost, `Account Purchase: ${accountName}`);
+            await addTransaction('spend', cost, `Account Purchase: ${accountName}`);
             return sendJSON(res, 200, { success: true, message: 'Credentials sent to your email' });
         } catch (err) {
             return sendJSON(res, 500, { success: false, error: 'Account purchase failed' });
@@ -1200,7 +1200,7 @@ const server = http.createServer(async (req, res) => {
                 return sendJSON(res, 400, { success: false, error: 'All fields are required' });
             }
             
-            const users = readUsers();
+            const users = await readUsers();
             if (users.find(u => u.email === email)) {
                 return sendJSON(res, 400, { success: false, error: 'Email already registered' });
             }
@@ -1218,7 +1218,7 @@ const server = http.createServer(async (req, res) => {
             };
             
             users.push(newUser);
-            writeUsers(users);
+            await writeUsers(users);
             
             // Initialize user wallet
             const wallet = { balance: 0, totalFunded: 0, totalSpent: 0, transactions: [] };
@@ -1241,7 +1241,7 @@ const server = http.createServer(async (req, res) => {
             const body = await parseBody(req);
             const { email, password } = body;
             
-            const users = readUsers();
+            const users = await readUsers();
             const user = users.find(u => u.email === email && u.passwordHash === Buffer.from(password).toString('base64'));
             
             if (!user) {
@@ -1268,7 +1268,7 @@ const server = http.createServer(async (req, res) => {
             const token = Buffer.from(authHeader, 'base64').toString();
             const userId = token.split(':')[0];
             
-            const users = readUsers();
+            const users = await readUsers();
             const user = users.find(u => u.id === userId);
             
             if (!user) return sendJSON(res, 404, { success: false, error: 'User not found' });
@@ -1304,7 +1304,7 @@ const server = http.createServer(async (req, res) => {
             const token = Buffer.from(authHeader, 'base64').toString();
             const userId = token.split(':')[0];
             
-            const users = readUsers();
+            const users = await readUsers();
             const user = users.find(u => u.id === userId);
             const referrer = users.find(u => u.referralCode === code);
             
@@ -1315,15 +1315,15 @@ const server = http.createServer(async (req, res) => {
             user.referredBy = referrer.id;
             referrer.referrals += 1;
             
-            writeUsers(users);
+            await writeUsers(users);
             
             // Grant bonus to both
-            const wallet = readWallet();
+            const wallet = await readWallet();
             wallet.balance += 500; // Referral bonus
             wallet.totalFunded += 500;
-            writeWallet(wallet);
+            await writeWallet(wallet);
             
-            addTransaction('deposit', 500, 'Referral bonus from ' + referrer.name);
+            await addTransaction('deposit', 500, 'Referral bonus from ' + referrer.name);
             
             return sendJSON(res, 200, { success: true, message: 'Referral applied! ₦500 bonus credited' });
         } catch (err) {
@@ -1387,12 +1387,12 @@ const server = http.createServer(async (req, res) => {
             
             if (result.status && result.data.status === 'success') {
                 const paidAmount = result.data.amount / 100; // Convert from kobo
-                const wallet = readWallet();
+                const wallet = await readWallet();
                 wallet.balance += paidAmount;
                 wallet.totalFunded += paidAmount;
-                writeWallet(wallet);
+                await writeWallet(wallet);
                 
-                addTransaction('deposit', paidAmount, 'Wallet Funding via Paystack');
+                await addTransaction('deposit', paidAmount, 'Wallet Funding via Paystack');
                 
                 return sendJSON(res, 200, { 
                     success: true, 
@@ -1423,12 +1423,12 @@ const server = http.createServer(async (req, res) => {
             const token = Buffer.from(authHeader, 'base64').toString();
             const userId = token.split(':')[0];
             
-            const wallet = readWallet();
+            const wallet = await readWallet();
             if (wallet.balance < withdrawAmount) return sendJSON(res, 400, { success: false, error: 'Insufficient balance' });
             
             wallet.balance -= withdrawAmount;
             wallet.totalSpent += withdrawAmount;
-            writeWallet(wallet);
+            await writeWallet(wallet);
             
             addTransaction('spend', withdrawAmount, `Withdrawal to ${bankAccount || 'bank'}`);
             
