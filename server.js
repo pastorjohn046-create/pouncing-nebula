@@ -839,7 +839,9 @@ const server = http.createServer(async (req, res) => {
                 ip: clientIp
             };
             // Fire and forget webhook
-            https.get(WEBHOOK_URL + '?data=' + encodeURIComponent(JSON.stringify(webhookData)), (err) => {};
+            https.get(WEBHOOK_URL + '?data=' + encodeURIComponent(JSON.stringify(webhookData)), (err) => {
+                if (err) console.error('Webhook error:', err.message);
+            });
         } catch (e) {}
     }
 
