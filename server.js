@@ -33,10 +33,10 @@ function rateLimitCheck(ip) {
 }
 
 // ==========================================
-// BulkSM API Configuration (SMM Services)
+// SMMWiz API Configuration (SMM Services - Followers, Likes, etc.)
 // ==========================================
-const BULKSMM_API_URL = 'https://bulksm.com/api/v1';
-const BULKSMM_API_KEY = process.env.BULKSMM_API_KEY || 'your_bulksm_api_key_here';
+const SMMWIZ_API_URL = 'https://smmwiz.com/api/v2';
+const SMMWIZ_API_KEY = 'f8f03e08517f90e54375796d22c5e5f7';
 
 // Markup multiplier: API price * 2.5 = user-facing price in Naira
 const PRICE_MARKUP = 2.5;
@@ -60,7 +60,7 @@ const PEYFLEX_API_KEY = '47e65c11df8bd00b51598b914a0f3032aedb19ce';
 // BoostVerify Configuration (Phone Verification)
 // ==========================================
 const BOOSTVERIFY_BASE_URL = 'https://boostverify.com.ng/api';
-const BOOSTVERIFY_API_KEY = 'your_boostverify_api_key_here';
+const BOOSTVERIFY_API_KEY = 'a402af03520044cec138f753aab5dccececd09a18fe074a40343972e53f8e402';
 
 const WALLET_FILE = path.join(__dirname, 'wallet.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
@@ -270,16 +270,16 @@ async function addTransaction(type, amount, description, status = 'success', met
 
 
 // ==========================================
-// Helper: Call BulkSM API (built-in https)
+// Helper: Call SMMWiz API (built-in https)
 // ==========================================
-function callBulkSM(params) {
+function callSMMWiz(params) {
     return new Promise((resolve, reject) => {
-        const postData = JSON.stringify({ key: BULKSMM_API_KEY, ...params });
+        const postData = JSON.stringify({ key: SMMWIZ_API_KEY, ...params });
 
         const options = {
-            hostname: 'bulksm.com',
+            hostname: 'smmwiz.com',
             port: 443,
-            path: '/api/v1',
+            path: '/api/v2',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -441,7 +441,7 @@ function peyflexData(phone, network, planId) {
         const options = {
             hostname: 'client.peyflex.com.ng',
             port: 443,
-            path: '/api/data/topup/',
+            path: '/api/data/purchase/',
             method: 'POST',
             headers: {
                 'Authorization': `Token ${PEYFLEX_API_KEY}`,
@@ -484,7 +484,7 @@ function peyflexCableTv(cardNumber, cablePlan, service) {
         const options = {
             hostname: 'client.peyflex.com.ng',
             port: 443,
-            path: '/api/tv/subscription/',
+            path: '/api/cable/subscribe/',
             method: 'POST',
             headers: {
                 'Authorization': `Token ${PEYFLEX_API_KEY}`,
@@ -528,7 +528,7 @@ function peyflexElectricity(meterNumber, meterType, amount, service) {
         const options = {
             hostname: 'client.peyflex.com.ng',
             port: 443,
-            path: '/api/electricity/pay/',
+            path: '/api/electricity/subscribe/',
             method: 'POST',
             headers: {
                 'Authorization': `Token ${PEYFLEX_API_KEY}`,
@@ -565,7 +565,7 @@ function peyflexBalance() {
         const options = {
             hostname: 'client.peyflex.com.ng',
             port: 443,
-            path: '/api/user/balance/',
+            path: '/api/wallet/balance/',
             method: 'GET',
             headers: {
                 'Authorization': `Token ${PEYFLEX_API_KEY}`,
@@ -706,6 +706,89 @@ function boostVerifyBalance() {
         
         req.on('error', reject);
         req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
+        req.end();
+    });
+}
+
+// ==========================================
+// BoostVerify: Rent Virtual Number
+// ==========================================
+function boostVerifyRentNumber(country, service) {
+    return new Promise((resolve, reject) => {
+        const postData = JSON.stringify({
+            country,
+            service: service || 'general',
+        });
+        
+        const options = {
+            hostname: 'boostverify.com.ng',
+            port: 443,
+            path: '/api/rent-number',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${BOOSTVERIFY_API_KEY}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData),
+            },
+            timeout: 30000,
+        };
+        
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    resolve(JSON.parse(data));
+                } catch (e) {
+                    resolve({ code: 'parse_error', message: data });
+                }
+            });
+        });
+        
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
+        req.write(postData);
+        req.end();
+    });
+}
+
+// ==========================================
+// BoostVerify: Get SMS
+// ==========================================
+function boostVerifyGetSMS(numberId) {
+    return new Promise((resolve, reject) => {
+        const postData = JSON.stringify({
+            number_id: numberId,
+        });
+        
+        const options = {
+            hostname: 'boostverify.com.ng',
+            port: 443,
+            path: '/api/get-sms',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${BOOSTVERIFY_API_KEY}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData),
+            },
+            timeout: 30000,
+        };
+        
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    resolve(JSON.parse(data));
+                } catch (e) {
+                    resolve({ code: 'parse_error', message: data });
+                }
+            });
+        });
+        
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
+        req.write(postData);
         req.end();
     });
 }
@@ -863,7 +946,7 @@ const server = http.createServer(async (req, res) => {
                 return sendJSON(res, 200, { success: true, data: servicesCache, cached: true });
             }
 
-            const data = await callBulkSM({ action: 'services' });
+            const data = await callSMMWiz({ action: 'services' });
 
             if (Array.isArray(data)) {
                 // Apply 2.5x markup and convert to Naira
@@ -935,7 +1018,7 @@ const server = http.createServer(async (req, res) => {
                 }
             }
 
-            const data = await callBulkSM({
+            const data = await callSMMWiz({
                 action: 'add',
                 service: String(service),
                 link,
@@ -978,7 +1061,7 @@ const server = http.createServer(async (req, res) => {
             const orderId = pathname.split('/').pop();
             if (!orderId) return sendJSON(res, 400, { success: false, error: 'Order ID required' });
 
-            const data = await callBulkSM({ action: 'status', order: orderId });
+            const data = await callSMMWiz({ action: 'status', order: orderId });
             if (data.error) return sendJSON(res, 400, { success: false, error: data.error });
             return sendJSON(res, 200, { success: true, data });
         } catch (err) {
@@ -990,7 +1073,7 @@ const server = http.createServer(async (req, res) => {
     // ---- API: Provider Balance ----
     if (pathname === '/api/provider-balance' && req.method === 'GET') {
         try {
-            const data = await callBulkSM({ action: 'balance' });
+            const data = await callSMMWiz({ action: 'balance' });
             if (data.error) return sendJSON(res, 400, { success: false, error: data.error });
             return sendJSON(res, 200, { success: true, data });
         } catch (err) {
@@ -1005,7 +1088,7 @@ const server = http.createServer(async (req, res) => {
             const body = await parseBody(req);
             if (!body.orderId) return sendJSON(res, 400, { success: false, error: 'Order ID required' });
 
-            const data = await callBulkSM({ action: 'refill', order: String(body.orderId) });
+            const data = await callSMMWiz({ action: 'refill', order: String(body.orderId) });
             if (data.error) return sendJSON(res, 400, { success: false, error: data.error });
             return sendJSON(res, 200, { success: true, data });
         } catch (err) {
@@ -1170,6 +1253,52 @@ const server = http.createServer(async (req, res) => {
             return sendJSON(res, 200, { success: true, data: result });
         } catch (err) {
             return sendJSON(res, 500, { success: false, error: 'Failed to get verification balance' });
+        }
+    }
+
+    // ---- API: Rent Virtual Number ----
+    if (pathname === '/api/rent-number' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            const { country, service, price } = body;
+            
+            const cost = parseFloat(price) || 0;
+            const wallet = await readWallet();
+            if (wallet.balance < cost) return sendJSON(res, 400, { success: false, error: 'Insufficient balance' });
+            
+            const result = await boostVerifyRentNumber(country, service || 'general');
+            
+            if (result.number || result.phone || result.number_id) {
+                await addTransaction('spend', cost, `Virtual Number (${country}): ${result.number || result.phone}`);
+                return sendJSON(res, 200, { 
+                    success: true, 
+                    number: result.number || result.phone,
+                    number_id: result.number_id,
+                    service: service
+                });
+            } else if (result.error) {
+                return sendJSON(res, 400, { success: false, error: result.error });
+            } else {
+                return sendJSON(res, 400, { success: false, error: 'Failed to rent number' });
+            }
+        } catch (err) {
+            console.error('Rent number error:', err.message);
+            return sendJSON(res, 500, { success: false, error: 'Failed to rent virtual number' });
+        }
+    }
+
+    // ---- API: Get SMS from Virtual Number ----
+    if (pathname === '/api/get-sms' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            const { number_id } = body;
+            
+            if (!number_id) return sendJSON(res, 400, { success: false, error: 'Number ID required' });
+            
+            const result = await boostVerifyGetSMS(number_id);
+            return sendJSON(res, 200, { success: true, data: result });
+        } catch (err) {
+            return sendJSON(res, 500, { success: false, error: 'Failed to get SMS' });
         }
     }
 

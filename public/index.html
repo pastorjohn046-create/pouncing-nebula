@@ -613,7 +613,7 @@
                             <span class="font-extrabold text-primary text-lg">₦1,500</span>
                         </div>
                         <div class="flex gap-2 pt-2 border-t border-gray-50/50">
-                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'vtu', '₦1,500', '15-minute rental for OTP verification.')">Rent 15m</button>
+                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'account', '₦1,500', '15-minute rental for OTP verification.')">Rent 15m</button>
                             <button class="bg-primary text-white font-bold text-[13px] py-3 px-4 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'account', '₦1,500', 'Permanent USA number. Instant delivery.')">Buy Permanent</button>
                         </div>
                     </div>
@@ -632,7 +632,7 @@
                             <span class="font-extrabold text-primary text-lg">₦2,200</span>
                         </div>
                         <div class="flex gap-2 pt-2 border-t border-gray-50/50">
-                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'vtu', '₦2,200', '15-minute rental for OTP verification.')">Rent 15m</button>
+                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'account', '₦2,200', '15-minute rental for OTP verification.')">Rent 15m</button>
                             <button class="bg-primary text-white font-bold text-[13px] py-3 px-4 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'account', '₦2,200', 'Permanent UK number. Instant delivery.')">Buy Permanent</button>
                         </div>
                     </div>
@@ -1810,12 +1810,53 @@
             btn.classList.add('opacity-80', 'pointer-events-none');
 
             try {
-                const response = await fetch('/api/purchase/account', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ accountName, price })
-                });
-                const result = await response.json();
+                let response, result;
+                
+                // Check if this is a virtual number purchase
+                if (accountName.includes('Virtual Number')) {
+                    const country = accountName.includes('UK') ? 'UK' : 'USA';
+                    const service = accountName.includes('WhatsApp') ? 'whatsapp' : 'general';
+                    
+                    response = await fetch('/api/rent-number', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ country, service, price })
+                    });
+                    result = await response.json();
+                    
+                    if (result.success) {
+                        closeBottomSheet();
+                        showToast(`Number rented: ${result.number}`, 'success');
+                        // Show the number to user
+                        const sheet = document.getElementById('bottom-sheet');
+                        const overlay = document.getElementById('sheet-overlay');
+                        if (overlay) overlay.classList.remove('hidden');
+                        if (sheet) {
+                            sheet.querySelector('#sheet-content').innerHTML = `
+                                <div class="text-center py-8">
+                                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span class="material-symbols-outlined text-green-600 text-[40px]">check_circle</span>
+                                    </div>
+                                    <h3 class="font-headline font-extrabold text-2xl mb-2">Number Rented!</h3>
+                                    <p class="text-[13px] text-gray-500 mb-4">Use this number for verification:</p>
+                                    <div class="p-4 bg-gray-100 rounded-xl font-mono text-xl font-bold text-primary">${result.number}</div>
+                                    <p class="text-[11px] text-gray-400 mt-4">Check dashboard for incoming SMS</p>
+                                    <button onclick="closeBottomSheet();showToast('Check dashboard for OTP codes','info')" class="w-full bg-primary text-white font-bold py-4 rounded-xl mt-6">Done</button>
+                                </div>
+                            `;
+                        }
+                        loadWallet();
+                        return;
+                    }
+                } else {
+                    response = await fetch('/api/purchase/account', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ accountName, price })
+                    });
+                    result = await response.json();
+                }
+                
                 if(result.success) {
                     closeBottomSheet();
                     showSuccessOverlay();
