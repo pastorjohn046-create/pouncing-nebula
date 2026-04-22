@@ -1,0 +1,22 @@
+{
+  "name": "Vertex Booster",
+  "short_name": "Vertex Booster",
+  "description": "Premium SMM and VTU service hub dashboard",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://ui-avatars.com/api/?name=V+C&background=7C3AED&color=fff&size=192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://ui-avatars.com/api/?name=V+C&background=7C3AED&color=fff&size=512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

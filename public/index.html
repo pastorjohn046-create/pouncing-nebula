@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#7C3AED">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vertex Booster">
+    <link rel="manifest" href="/manifest.json">
+    <title>Vertex Booster — SMM & VTU Hub</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#7C3AED',
+                        'primary-light': '#8B5CF6',
+                        'primary-dark': '#6D28D9',
+                        background: '#F9FAFB',
+                        surface: '#FFFFFF',
+                        onSurface: '#111827',
+                        onSurfaceMuted: '#6B7280',
+                        success: '#10B981',
+                        pending: '#F59E0B',
+                        error: '#EF4444'
+                    },
+                    fontFamily: {
+                        headline: ['Manrope', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f3f5;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2, h3, h4, h5, h6, .font-headline {
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .dark .glass-nav { background: rgba(17, 24, 39, 0.85); }
+        .hide { display: none !important; }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ========== PREMIUM ANIMATIONS ========== */
+
+        /* Page transitions */
+        .page-enter {
+            animation: slideUpFade 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Toast animations */
+        .toast-enter { animation: slideDownToast 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .toast-exit { animation: slideUpToast 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        @keyframes slideDownToast {
+            0% { opacity: 0; transform: translateY(-20px) translateX(-50%); }
+            100% { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+        @keyframes slideUpToast {
+            0% { opacity: 1; transform: translateY(0) translateX(-50%); }
+            100% { opacity: 0; transform: translateY(-20px) translateX(-50%); }
+        }
+
+        /* Interactive button feedback */
+        .interactive-btn {
+            transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+        }
+        .interactive-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Bottom Sheet */
+        .sheet-overlay-enter { animation: fadeIn 0.3s forwards; }
+        .sheet-overlay-exit { animation: fadeOut 0.3s forwards; }
+        .sheet-enter { animation: slideUpSheet 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+        .sheet-exit { animation: slideDownSheet 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideDownSheet { from { transform: translateY(0); } to { transform: translateY(100%); } }
+
+        /* ========== FLOATING ORB ANIMATIONS ========== */
+        @keyframes floatOrb1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -20px) scale(1.1); }
+            50% { transform: translate(-10px, -40px) scale(0.95); }
+            75% { transform: translate(-30px, -10px) scale(1.05); }
+        }
+        @keyframes floatOrb2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-20px, 20px) scale(1.15); }
+            50% { transform: translate(20px, 30px) scale(0.9); }
+            75% { transform: translate(10px, -20px) scale(1.1); }
+        }
+        @keyframes floatOrb3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(15px, -25px) scale(1.2); }
+            66% { transform: translate(-25px, 15px) scale(0.85); }
+        }
+        .float-orb-1 { animation: floatOrb1 8s ease-in-out infinite; }
+        .float-orb-2 { animation: floatOrb2 10s ease-in-out infinite; }
+        .float-orb-3 { animation: floatOrb3 12s ease-in-out infinite; }
+
+        /* ========== SPLASH SCREEN PARTICLES ========== */
+        @keyframes particleFloat {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        .splash-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+        }
+        .splash-particle:nth-child(1) { width: 6px; height: 6px; left: 10%; bottom: -10%; animation: particleFloat 6s linear infinite 0s; }
+        .splash-particle:nth-child(2) { width: 10px; height: 10px; left: 25%; bottom: -10%; animation: particleFloat 8s linear infinite 1s; }
+        .splash-particle:nth-child(3) { width: 4px; height: 4px; left: 45%; bottom: -10%; animation: particleFloat 5s linear infinite 2s; }
+        .splash-particle:nth-child(4) { width: 8px; height: 8px; left: 65%; bottom: -10%; animation: particleFloat 7s linear infinite 0.5s; }
+        .splash-particle:nth-child(5) { width: 5px; height: 5px; left: 80%; bottom: -10%; animation: particleFloat 9s linear infinite 1.5s; }
+        .splash-particle:nth-child(6) { width: 12px; height: 12px; left: 35%; bottom: -10%; animation: particleFloat 10s linear infinite 3s; }
+        .splash-particle:nth-child(7) { width: 3px; height: 3px; left: 55%; bottom: -10%; animation: particleFloat 4s linear infinite 0.8s; }
+        .splash-particle:nth-child(8) { width: 7px; height: 7px; left: 90%; bottom: -10%; animation: particleFloat 6.5s linear infinite 2.5s; }
+
+        /* Splash logo entrance */
+        @keyframes logoEntrance {
+            0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .splash-logo-enter {
+            animation: logoEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* ========== SHIMMER / SHINE EFFECT ========== */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .shimmer-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        /* ========== CARD HOVER LIFT ========== */
+        .card-hover {
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(124, 58, 237, 0.12);
+        }
+
+        /* Quick action icon bounce on hover */
+        .quick-action-icon {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .quick-action-icon:hover {
+            transform: scale(1.12) translateY(-2px);
+        }
+
+        /* ========== ANIMATED GRADIENT BORDER (wallet) ========== */
+        @keyframes gradientRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-gradient-border {
+            background: linear-gradient(135deg, #7C3AED, #EC4899, #F59E0B, #10B981, #7C3AED);
+            background-size: 400% 400%;
+            animation: gradientRotate 6s ease infinite;
+            padding: 2px;
+            border-radius: 26px;
+        }
+        .animated-gradient-border > div {
+            border-radius: 24px;
+        }
+
+        /* ========== PULSING GLOW (balance card) ========== */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 8px 30px rgba(124, 58, 237, 0.3); }
+            50% { box-shadow: 0 8px 50px rgba(124, 58, 237, 0.5), 0 0 80px rgba(124, 58, 237, 0.15); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        /* ========== STAGGER CHILDREN ========== */
+        .stagger-in > *:nth-child(1) { animation-delay: 0.05s; }
+        .stagger-in > *:nth-child(2) { animation-delay: 0.1s; }
+        .stagger-in > *:nth-child(3) { animation-delay: 0.15s; }
+        .stagger-in > *:nth-child(4) { animation-delay: 0.2s; }
+        .stagger-in > * {
+            opacity: 0;
+            animation: slideUpFade 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* ========== LIVE PULSE DOT ========== */
+        @keyframes livePulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.8); opacity: 0; }
+        }
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: inherit;
+            animation: livePulse 2s ease-in-out infinite;
+        }
+    </style>
+
+</head>
+<body class="text-onSurface bg-background dark:bg-black antialiased flex justify-center items-center h-screen w-full overflow-hidden transition-colors">
+
+    <!-- Main App Wrapper -->
+    <div class="w-full h-full md:max-w-6xl md:border-x md:border-gray-200 dark:md:border-gray-800 bg-background dark:bg-gray-900 flex flex-col relative md:shadow-2xl overflow-hidden transition-colors mx-auto">
+        
+        <!-- Global Toast Container -->
+        <div id="toast" class="absolute top-[80px] left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-5 py-3 rounded-full shadow-2xl font-bold text-sm hidden items-center gap-2 max-w-[85%] w-max transition-all">
+            <span id="toast-icon" class="material-symbols-outlined text-green-400 icon-fill text-[20px]">check_circle</span>
+            <span id="toast-msg" class="truncate">Action Successful</span>
+        </div>
+
+        <!-- SPLASH SCREEN VIEW -->
+        <section id="view-splash" class="absolute inset-0 bg-gradient-to-br from-primary via-purple-600 to-indigo-700 z-[200] flex flex-col justify-center items-center transition-opacity duration-700 overflow-hidden">
+            <!-- Floating Particles -->
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <div class="splash-particle"></div>
+            <!-- Ambient Orbs -->
+            <div class="absolute top-1/4 left-1/4 w-40 h-40 bg-white/5 rounded-full blur-3xl float-orb-1"></div>
+            <div class="absolute bottom-1/3 right-1/4 w-32 h-32 bg-pink-400/10 rounded-full blur-2xl float-orb-2"></div>
+            
+            <div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex justify-center items-center mb-6 shadow-2xl splash-logo-enter">
+                <span class="material-symbols-outlined text-white text-[56px] icon-fill">rocket_launch</span>
+            </div>
+            <h1 class="text-white font-headline font-extrabold text-[32px] tracking-tight splash-logo-enter" style="animation-delay: 0.2s">Vertex Booster</h1>
+            <p class="text-purple-200 font-bold tracking-[0.3em] uppercase text-[11px] mt-2 splash-logo-enter" style="animation-delay: 0.4s">SMM & VTU Hub</p>
+            <div class="mt-auto pb-12">
+                <div class="w-8 h-8 border-4 border-white/40 border-t-white rounded-full animate-spin"></div>
+            </div>
+        </section>
+
+        <!-- REGISTRATION VIEW -->
+        <section id="view-register" class="absolute inset-0 bg-background dark:bg-gray-950 z-[190] w-full h-full flex flex-col px-6 overflow-y-auto no-scrollbar pb-10 transition-opacity duration-500 hide transition-colors">
+            <div class="w-full max-w-md mx-auto my-auto py-12 md:py-24">
+                <div class="text-center mb-10">
+                    <h2 class="font-headline font-extrabold text-[32px] text-gray-900 dark:text-white leading-tight">Create your <br>Account</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-[14px] font-medium mt-3">Join Vertex Booster to access premium tools.</p>
+                </div>
+                <form class="space-y-5" onsubmit="event.preventDefault(); completeAuth('btn-register', 'view-register', 'Account Created Successfully!');">
+                    <div>
+                        <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Full Name</label>
+                        <input type="text" required placeholder="John Doe" class="w-full mt-1.5 px-4 py-4 bg-white dark:bg-gray-800 border-2 border-transparent dark:border-gray-800 rounded-xl text-sm focus:outline-none focus:border-primary text-gray-900 dark:text-white transition-colors shadow-sm">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Email Address</label>
+                        <input type="email" required placeholder="john@example.com" class="w-full mt-1.5 px-4 py-4 bg-white dark:bg-gray-800 border-2 border-transparent dark:border-gray-800 rounded-xl text-sm focus:outline-none focus:border-primary text-gray-900 dark:text-white transition-colors shadow-sm">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Password</label>
+                        <input type="password" required placeholder="••••••••" class="w-full mt-1.5 px-4 py-4 bg-white dark:bg-gray-800 border-2 border-transparent dark:border-gray-800 rounded-xl text-sm focus:outline-none focus:border-primary text-gray-900 dark:text-white transition-colors shadow-sm">
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white font-bold text-[16px] py-4 rounded-xl mt-8 shadow-xl shadow-primary/30 interactive-btn flex justify-center items-center gap-2" id="btn-register">
+                        Launch Hub <span class="material-symbols-outlined">east</span>
+                    </button>
+                    <p class="text-center text-[13px] text-gray-500 font-medium mt-6 pb-6">Already have an account? <span class="font-extrabold text-primary cursor-pointer hover:underline" onclick="toggleAuthView('login')">Login</span></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- LOGIN VIEW -->
+        <section id="view-login" class="absolute inset-0 bg-background dark:bg-gray-950 z-[190] w-full h-full flex flex-col px-6 overflow-y-auto no-scrollbar pb-10 transition-opacity duration-500 hide transition-colors">
+            <div class="w-full max-w-md mx-auto my-auto py-12 md:py-24">
+                <div class="text-center mb-10">
+                    <h2 class="font-headline font-extrabold text-[32px] text-gray-900 dark:text-white leading-tight">Welcome <br>Back</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-[14px] font-medium mt-3">Log in to manage your Vertex Booster account.</p>
+                </div>
+                <form class="space-y-5" onsubmit="event.preventDefault(); completeAuth('btn-login', 'view-login', 'Welcome back!');">
+                    <div>
+                        <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Email Address</label>
+                        <input type="email" required placeholder="john@example.com" class="w-full mt-1.5 px-4 py-4 bg-white dark:bg-gray-800 border-2 border-transparent dark:border-gray-800 rounded-xl text-sm focus:outline-none focus:border-primary text-gray-900 dark:text-white transition-colors shadow-sm">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center">
+                            <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Password</label>
+                            <span class="text-[11px] font-bold text-primary cursor-pointer hover:underline">Forgot password?</span>
+                        </div>
+                        <input type="password" required placeholder="••••••••" class="w-full mt-1.5 px-4 py-4 bg-white dark:bg-gray-800 border-2 border-transparent dark:border-gray-800 rounded-xl text-sm focus:outline-none focus:border-primary text-gray-900 dark:text-white transition-colors shadow-sm">
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white font-bold text-[16px] py-4 rounded-xl mt-8 shadow-xl shadow-primary/30 interactive-btn flex justify-center items-center gap-2" id="btn-login">
+                        Access Hub <span class="material-symbols-outlined">login</span>
+                    </button>
+                    <p class="text-center text-[13px] text-gray-500 font-medium mt-6 pb-6">Don't have an account? <span class="font-extrabold text-primary cursor-pointer hover:underline" onclick="toggleAuthView('register')">Sign up</span></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Top App Bar -->
+        <header class="glass-nav dark:!bg-gray-900/85 absolute top-0 w-full z-50 px-5 md:px-8 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center transition-colors">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden ring-2 ring-primary/20 shadow-sm border border-white cursor-pointer interactive-btn" onclick="switchTab('profile')">
+                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=7C3AED&color=fff" alt="Avatar">
+                </div>
+                <h1 class="text-[19px] font-extrabold font-headline tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-light">Vertex Booster</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors interactive-btn" onclick="toggleTheme()">
+                    <span class="material-symbols-outlined text-[20px]" id="theme-icon">dark_mode</span>
+                </button>
+                <button class="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors interactive-btn" onclick="switchTab('wallet')">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto pt-[85px] pb-28 page-enter no-scrollbar relative w-full h-full" id="main-content">
+            
+            <!-- DASHBOARD VIEW -->
+            <section id="view-home" class="px-5 md:px-8 pb-6 w-full h-auto">
+                <div class="md:grid md:grid-cols-2 md:gap-8 mt-4">
+                    <div class="space-y-7">
+                        <!-- Balance Card -->
+                <div class="bg-gradient-to-br from-primary via-purple-600 to-indigo-600 rounded-[24px] p-6 text-white pulse-glow relative overflow-hidden shimmer-card">
+                    <!-- Animated floating orbs -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10 float-orb-1"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-pink-400 opacity-15 rounded-full blur-xl -ml-6 -mb-6 float-orb-2"></div>
+                    <div class="absolute top-1/2 right-1/3 w-16 h-16 bg-cyan-300 opacity-10 rounded-full blur-lg float-orb-3"></div>
+                    
+                    <div class="flex items-center gap-2 mb-1 relative z-10">
+                        <p class="text-purple-200 text-xs font-semibold uppercase tracking-wider">Available Balance</p>
+                        <div class="w-2 h-2 bg-green-400 rounded-full relative live-dot"></div>
+                    </div>
+                    <h2 class="text-4xl font-headline font-extrabold tracking-tight relative z-10 mt-1 balance-text animate-pulse">₦---<span class="text-xl text-purple-300 font-semibold">.--</span></h2>
+                    
+                    <div class="flex gap-3 mt-6 relative z-10">
+                        <button onclick="switchTab('wallet')" class="flex-1 bg-white text-primary rounded-xl py-3.5 font-bold text-sm shadow-md interactive-btn flex justify-center items-center gap-2 hover:shadow-lg transition-shadow">
+                            <span class="material-symbols-outlined text-[20px]">add_circle</span> Fund Wallet
+                        </button>
+                        <button class="w-14 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 interactive-btn hover:bg-white/30 transition-colors" onclick="switchTab('services')">
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Access / Services Preview -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-headline font-extrabold text-lg tracking-tight">Quick Actions</h3>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3 stagger-in">
+                        <div class="flex flex-col items-center gap-2 interactive-btn cursor-pointer" onclick="switchTab('services'); setActiveServiceTab('smm')">
+                            <div class="w-14 h-14 rounded-[16px] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-blue-600 quick-action-icon">
+                                <span class="material-symbols-outlined text-[28px] icon-fill">thumb_up</span>
+                            </div>
+                            <span class="font-headline text-[11px] font-bold text-onSurfaceMuted dark:text-gray-400">Socials</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 interactive-btn cursor-pointer" onclick="switchTab('services'); setActiveServiceTab('vtu')">
+                            <div class="w-14 h-14 rounded-[16px] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-green-500 quick-action-icon">
+                                <span class="material-symbols-outlined text-[28px] icon-fill">phone_iphone</span>
+                            </div>
+                            <span class="font-headline text-[11px] font-bold text-onSurfaceMuted dark:text-gray-400">Airtime</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 interactive-btn cursor-pointer" onclick="switchTab('services'); setActiveServiceTab('vtu')">
+                            <div class="w-14 h-14 rounded-[16px] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-orange-500 quick-action-icon">
+                                <span class="material-symbols-outlined text-[28px] icon-fill">wifi_tethering</span>
+                            </div>
+                            <span class="font-headline text-[11px] font-bold text-onSurfaceMuted dark:text-gray-400">Data</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 interactive-btn cursor-pointer" onclick="switchTab('services'); setActiveServiceTab('accounts')">
+                            <div class="w-14 h-14 rounded-[16px] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-primary quick-action-icon">
+                                <span class="material-symbols-outlined text-[28px] icon-fill">storefront</span>
+                            </div>
+                            <span class="font-headline text-[11px] font-bold text-onSurfaceMuted dark:text-gray-400">Accounts</span>
+                        </div>
+                    </div>
+                </div>
+
+                    </div> <!-- End Left Column -->
+
+                <!-- Recent Transactions -->
+                <div class="pb-4 mt-7 md:mt-0">
+                    <div class="flex justify-between items-center mb-4 stagger-in">
+                        <h3 class="font-headline font-extrabold text-lg tracking-tight">Recent Activity</h3>
+                        <span class="text-xs font-bold text-primary uppercase tracking-wide cursor-pointer interactive-btn" onclick="switchTab('wallet')">See all</span>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-[24px] p-2 shadow-sm border border-gray-100 dark:border-gray-700 space-y-1 card-hover transition-colors" id="recent-activity-container">
+                        <div class="p-8 text-center animate-pulse">
+                            <span class="material-symbols-outlined text-[32px] text-gray-200 dark:text-gray-700 mb-2">sync</span>
+                            <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Syncing activity...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SERVICES VIEW -->
+            <section id="view-services" class="px-5 pb-6 space-y-6 hide w-full h-auto">
+                <h2 class="font-headline font-extrabold text-2xl tracking-tight px-1">Marketplace</h2>
+                
+                <!-- Services Sub-navigation -->
+                <div class="flex p-1 bg-gray-200/60 rounded-xl overflow-x-auto no-scrollbar border border-gray-100 mb-2">
+                    <button onclick="setActiveServiceTab('smm')" id="tab-smm" class="flex-1 py-2.5 px-3 sm:px-4 shadow-sm bg-white rounded-lg text-[13px] font-bold text-primary transition-all whitespace-nowrap">SMM Boosting</button>
+                    <button onclick="setActiveServiceTab('vtu')" id="tab-vtu" class="flex-1 py-2.5 px-3 sm:px-4 text-[13px] font-semibold text-gray-600 hover:text-gray-900 transition-all whitespace-nowrap">VTU & Bills</button>
+                    <button onclick="setActiveServiceTab('accounts')" id="tab-accounts" class="flex-1 py-2.5 px-3 sm:px-4 text-[13px] font-semibold text-gray-600 hover:text-gray-900 transition-all whitespace-nowrap">Aged Accounts</button>
+                    <button onclick="setActiveServiceTab('numbers')" id="tab-numbers" class="flex-1 py-2.5 px-3 sm:px-4 text-[13px] font-semibold text-gray-600 hover:text-gray-900 transition-all whitespace-nowrap">Virtual Numbers</button>
+                </div>
+
+                <!-- SMM Tab -->
+                <div id="content-smm" class="space-y-4">
+                    <!-- Search Bar -->
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">search</span>
+                        <input type="text" id="smm-search" placeholder="Search services..." oninput="filterServices()" class="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white font-medium">
+                    </div>
+
+                    <!-- Category/Platform Filter Pills (dynamic) -->
+                    <div id="platform-filters" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        <span class="platform-pill active px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-sm shadow-primary/20 cursor-pointer interactive-btn" data-platform="All" onclick="filterByPlatform('All', this)">All</span>
+                    </div>
+
+                    <!-- Category Filter Dropdown -->
+                    <div class="relative">
+                        <select id="category-filter" onchange="filterByCategory(this.value)" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white font-semibold appearance-none cursor-pointer">
+                            <option value="All">All Categories</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] pointer-events-none">expand_more</span>
+                    </div>
+                    
+                    <!-- Loading Skeleton -->
+                    <div id="smm-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
+                            <div class="flex gap-3 mb-4"><div class="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-gray-700"></div><div class="flex-1 space-y-2"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div></div></div>
+                            <div class="flex gap-2"><div class="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl flex-1"></div><div class="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl flex-1"></div></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
+                            <div class="flex gap-3 mb-4"><div class="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-gray-700"></div><div class="flex-1 space-y-2"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div></div></div>
+                            <div class="flex gap-2"><div class="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl flex-1"></div><div class="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl flex-1"></div></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse hidden md:block">
+                            <div class="flex gap-3 mb-4"><div class="w-12 h-12 rounded-2xl bg-gray-200 dark:bg-gray-700"></div><div class="flex-1 space-y-2"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div><div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div></div></div>
+                            <div class="flex gap-2"><div class="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl flex-1"></div><div class="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl flex-1"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="smm-error" class="hidden text-center py-12">
+                        <span class="material-symbols-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-3 block">cloud_off</span>
+                        <p class="text-gray-500 dark:text-gray-400 font-semibold text-sm mb-4">Failed to load services</p>
+                        <button onclick="loadServices()" class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm interactive-btn shadow-md shadow-primary/20">Retry</button>
+                    </div>
+
+                    <!-- No Results State -->
+                    <div id="smm-empty" class="hidden text-center py-12">
+                        <span class="material-symbols-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-3 block">search_off</span>
+                        <p class="text-gray-500 dark:text-gray-400 font-semibold text-sm">No services match your search</p>
+                    </div>
+
+                    <!-- Dynamic Services Grid -->
+                    <div id="smm-services" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4"></div>
+                    
+                    <!-- Services Count -->
+                    <div id="services-count" class="hidden text-center pb-2">
+                        <p class="text-[11px] text-gray-400 dark:text-gray-500 font-bold tracking-wider uppercase"></p>
+                    </div>
+                </div>
+
+                <!-- VTU Tab -->
+                <div id="content-vtu" class="space-y-6 hide pb-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Airtime Topup', 'vtu', '', 'Instant automated recharge for all major networks.')">
+                            <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-[18px] flex justify-center items-center">
+                                <span class="material-symbols-outlined icon-fill">call</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-[14px]">Airtime Topup</h4>
+                                <p class="text-[10px] text-green-600 font-extrabold mt-1 border border-green-200 bg-green-50 px-2 py-0.5 rounded uppercase inline-block">2% OFF</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Data Bundles', 'vtu', '', 'Instant data delivery. Cheap valid rates.')">
+                            <div class="w-14 h-14 bg-green-50 text-green-600 rounded-[18px] flex justify-center items-center">
+                                <span class="material-symbols-outlined icon-fill">wifi</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-[14px]">Data Bundles</h4>
+                                <p class="text-[11px] text-gray-500 font-semibold mt-1">All Networks</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="showToast('Opening Electricity Payments', 'info')">
+                            <div class="w-14 h-14 bg-yellow-50 text-yellow-600 rounded-[18px] flex justify-center items-center">
+                                <span class="material-symbols-outlined icon-fill">lightbulb</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-[14px]">Electricity</h4>
+                                <p class="text-[11px] text-gray-500 font-semibold mt-1">Prepaid/Postpaid</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="showToast('Opening Cable TV', 'info')">
+                            <div class="w-14 h-14 bg-red-50 text-red-600 rounded-[18px] flex justify-center items-center">
+                                <span class="material-symbols-outlined icon-fill">tv</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-[14px]">Cable TV</h4>
+                                <p class="text-[11px] text-gray-500 font-semibold mt-1">DSTV, GOTV</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accounts Tab -->
+                <div id="content-accounts" class="grid grid-cols-1 md:grid-cols-2 gap-4 hide pb-4">
+                    <div class="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gray-900 rounded-[16px] text-white flex items-center justify-center">
+                                    <span class="material-symbols-outlined">alternate_email</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-[14px] leading-tight">X (Twitter) Aged Account</h4>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[9px] font-extrabold rounded uppercase tracking-wider">Est. 2018</span>
+                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[9px] font-extrabold rounded uppercase tracking-wider">1.2k Flwrs</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-5 flex gap-3 items-center">
+                            <span class="font-extrabold text-primary text-xl flex-1 px-1">₦4,500</span>
+                            <button class="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-bold text-[13px] shadow-md shadow-gray-900/20 interactive-btn" onclick="openBottomSheet('X (Twitter) Aged Account', 'account', '₦4,500', 'Account from 2018 with 1.2k followers. Clean history.')">Purchase</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[24px] p-5 shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 rounded-[16px] text-white flex items-center justify-center p-1">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" class="w-full h-full object-contain invert">
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-[14px] leading-tight">Instagram Verified</h4>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[9px] font-extrabold rounded uppercase tracking-wider">Est. 2015</span>
+                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[9px] font-extrabold rounded uppercase tracking-wider">10k+ Flwrs</span>
+                                        <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-extrabold border border-blue-100 rounded uppercase tracking-wider">Legacy</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-5 flex gap-3 items-center">
+                            <span class="font-extrabold text-primary text-xl flex-1 px-1">₦85,000</span>
+                            <button class="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-bold text-[13px] shadow-md shadow-gray-900/20 interactive-btn" onclick="openBottomSheet('Instagram Verified', 'account', '₦85,000', 'Original legacy verified account with 10k+ followers.')">Purchase</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Virtual Numbers Tab -->
+                <div id="content-numbers" class="grid grid-cols-1 md:grid-cols-2 gap-4 hide pb-4">
+                    <div class="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 flex flex-col gap-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                    <span class="material-symbols-outlined text-[26px]">public</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-[14px] leading-snug text-gray-900">USA Virtual Number (+1)</h4>
+                                    <p class="text-[11px] text-gray-500 mt-1 font-medium">OTP/SMS Verification Ready</p>
+                                </div>
+                            </div>
+                            <span class="font-extrabold text-primary text-lg">₦1,500</span>
+                        </div>
+                        <div class="flex gap-2 pt-2 border-t border-gray-50/50">
+                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'vtu', '₦1,500', '15-minute rental for OTP verification.')">Rent 15m</button>
+                            <button class="bg-primary text-white font-bold text-[13px] py-3 px-4 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'account', '₦1,500', 'Permanent USA number. Instant delivery.')">Buy Permanent</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 flex flex-col gap-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                    <span class="material-symbols-outlined text-[26px]">public</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-[14px] leading-snug text-gray-900">UK Virtual Number (+44)</h4>
+                                    <p class="text-[11px] text-gray-500 mt-1 font-medium">WhatsApp / Telegram Ready</p>
+                                </div>
+                            </div>
+                            <span class="font-extrabold text-primary text-lg">₦2,200</span>
+                        </div>
+                        <div class="flex gap-2 pt-2 border-t border-gray-50/50">
+                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'vtu', '₦2,200', '15-minute rental for OTP verification.')">Rent 15m</button>
+                            <button class="bg-primary text-white font-bold text-[13px] py-3 px-4 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'account', '₦2,200', 'Permanent UK number. Instant delivery.')">Buy Permanent</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WALLET VIEW -->
+            <section id="view-wallet" class="px-5 pb-6 space-y-8 hide w-full h-auto">
+                <h2 class="font-headline font-extrabold text-2xl tracking-tight px-1">Wallet & Deposits</h2>
+                <div class="animated-gradient-border">
+                <div class="bg-gray-900 rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden shimmer-card">
+                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat"></div>
+                    <!-- Animated floating orbs -->
+                    <div class="absolute top-0 right-0 w-28 h-28 bg-purple-500 opacity-10 rounded-full blur-2xl float-orb-1"></div>
+                    <div class="absolute bottom-0 left-0 w-20 h-20 bg-cyan-400 opacity-10 rounded-full blur-xl float-orb-2"></div>
+                    <!-- card chip -->
+                    <div class="absolute top-6 right-6 w-10 h-7 border border-white/20 rounded-md bg-white/10 backdrop-blur-md flex items-center justify-center flex-col gap-0.5 opacity-80">
+                        <div class="w-6 h-px bg-white/40"></div>
+                        <div class="w-6 h-px bg-white/40"></div>
+                        <div class="w-6 h-px bg-white/40"></div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mb-1 z-10 relative">
+                        <h3 class="text-gray-400 font-bold text-[10px] tracking-widest uppercase">Main Balance</h3>
+                        <div class="w-2 h-2 bg-green-400 rounded-full relative live-dot"></div>
+                    </div>
+                    <h2 class="text-4xl font-headline font-extrabold mt-1 mb-6 z-10 relative">₦450,200<span class="text-xl text-gray-500">.50</span></h2>
+                    
+                    <div class="flex gap-4 z-10 relative border-t border-gray-800/80 pt-5">
+                        <div class="flex-1">
+                            <p class="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-wider">Total Funded</p>
+                            <p class="text-[14px] font-extrabold">₦1,200,000</p>
+                        </div>
+                        <div class="w-px bg-gray-800/80"></div>
+                        <div class="flex-1 pl-2">
+                            <p class="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-wider">Total Spent</p>
+                            <p class="text-[14px] font-extrabold">₦749,800</p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <div>
+                    <h3 class="font-headline font-extrabold text-lg mb-4">Add Funds</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="bg-primary/5 border-2 border-primary/40 p-4 rounded-2xl flex flex-col items-center gap-2 shadow-sm relative overflow-hidden interactive-btn cursor-pointer" onclick="initiateDeposit('bank')">
+                            <div class="absolute top-0 right-0 w-8 h-8 rounded-bl-xl bg-primary flex items-center justify-center text-white">
+                                <span class="material-symbols-outlined text-[16px] font-bold">check</span>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex justify-center items-center text-primary mt-1">
+                                <span class="material-symbols-outlined text-[24px]">account_balance</span>
+                            </div>
+                            <span class="font-extrabold text-[13px] text-gray-900 mt-1">Virtual Bank</span>
+                            <span class="text-[10px] text-gray-500 font-bold">Automated • 1% Fee</span>
+                        </div>
+                        <div class="bg-white border-2 border-gray-100 hover:border-gray-300 p-4 rounded-2xl flex flex-col items-center gap-2 transition-colors shadow-sm interactive-btn cursor-pointer" onclick="initiateDeposit('card')">
+                            <div class="w-12 h-12 rounded-full bg-gray-50 flex justify-center items-center text-gray-600 mt-1">
+                                <span class="material-symbols-outlined text-[24px]">credit_card</span>
+                            </div>
+                            <span class="font-extrabold text-[13px] text-gray-900 mt-1">Debit Card</span>
+                            <span class="text-[10px] text-gray-500 font-bold">Instant • 1.5% Fee</span>
+                        </div>
+                        <div class="bg-white border-2 border-gray-100 hover:border-gray-300 p-4 rounded-2xl flex flex-col items-center gap-2 transition-colors shadow-sm interactive-btn cursor-pointer" onclick="initiateDeposit('ussd')">
+                            <div class="w-12 h-12 rounded-full bg-gray-50 flex justify-center items-center text-gray-600 mt-1">
+                                <span class="material-symbols-outlined text-[24px]">tag</span>
+                            </div>
+                            <span class="font-extrabold text-[13px] text-gray-900 mt-1">USSD / Transfer</span>
+                            <span class="text-[10px] text-gray-500 font-bold">Instant • ₦50 fixed</span>
+                        </div>
+                        <div class="bg-gray-900 border-2 border-gray-900 p-4 rounded-2xl flex flex-col items-center gap-2 transition-colors shadow-lg shadow-gray-900/20 interactive-btn cursor-pointer" onclick="showToast('Generating Crypto Wallet Address...', 'info')">
+                            <div class="w-12 h-12 rounded-full bg-white/10 flex justify-center items-center text-white mt-1">
+                                <span class="material-symbols-outlined text-[24px]">currency_bitcoin</span>
+                            </div>
+                            <span class="font-extrabold text-[13px] text-white mt-1">Crypto</span>
+                            <span class="text-[10px] text-gray-400 font-bold">USDT, BTC, ETH</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pb-4">
+                    <h3 class="font-headline font-extrabold text-lg mb-4">Transaction Logs</h3>
+                    <div class="space-y-3">
+                        <div class="bg-white p-4 rounded-[20px] flex justify-between items-center shadow-sm border border-gray-100 cursor-pointer interactive-btn" onclick="showToast('Opening receipt X-982180', 'info')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex justify-center items-center"><span class="material-symbols-outlined">south_west</span></div>
+                                <div>
+                                    <p class="font-bold text-[13px]">Paystack Deposit</p>
+                                    <p class="text-[11px] text-gray-500 font-medium">TRX-982180 • Dec 12</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <p class="font-extrabold text-[14px] text-success">+₦30,000</p>
+                                <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded text-[9px] font-extrabold uppercase tracking-widest mt-1 border border-green-100">Success</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-[20px] flex justify-between items-center shadow-sm border border-gray-100 cursor-pointer interactive-btn" onclick="showToast('Checking status of Monnify..', 'info')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex justify-center items-center"><span class="material-symbols-outlined">schedule</span></div>
+                                <div>
+                                    <p class="font-bold text-[13px]">Monnify Transfer</p>
+                                    <p class="text-[11px] text-gray-500 font-medium">TRX-741982 • Dec 11</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <p class="font-extrabold text-[14px] text-orange-600">+₦15,000</p>
+                                <span class="px-2 py-0.5 bg-orange-50 text-orange-700 rounded text-[9px] font-extrabold uppercase tracking-widest mt-1 border border-orange-100">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROFILE VIEW -->
+            <section id="view-profile" class="px-5 pb-6 space-y-6 hide w-full h-auto">
+                <h2 class="font-headline font-extrabold text-2xl tracking-tight px-1 pt-2">My Profile</h2>
+                
+                <div class="flex flex-col items-center bg-white p-8 rounded-[24px] shadow-sm border border-gray-100 text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-tr-full pointer-events-none"></div>
+                    
+                    <div class="w-24 h-24 rounded-full border-4 border-primary/20 p-1 mb-4 relative z-10">
+                        <img src="https://ui-avatars.com/api/?name=John+Doe&background=7C3AED&color=fff" class="w-full h-full rounded-full shadow-md" alt="John Doe">
+                        <div class="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+                    <h2 class="font-headline font-extrabold text-2xl relative z-10">John Doe</h2>
+                    <p class="text-gray-500 text-sm mb-5 font-medium relative z-10" onclick="showToast('Email copied to clipboard!', 'success')">john.doe@example.com</p>
+                    
+                    <div class="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-orange-500/20 relative z-10 cursor-pointer interactive-btn" onclick="showToast('VIP Tier Requirements loading...', 'info')">
+                        <span class="material-symbols-outlined text-[18px] icon-fill">stars</span> VIP Level 2 Member
+                    </div>
+                </div>
+
+                <div class="space-y-4 pb-4">
+                    <h3 class="font-headline font-extrabold text-lg px-1">App Settings</h3>
+                    <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+                        <div class="flex items-center justify-between p-4 px-5 hover:bg-gray-50 transition-colors cursor-pointer interactive-btn" onclick="showToast('Opening Account Settings', 'info')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-gray-50 flex justify-center items-center text-gray-700">
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
+                                <span class="font-bold text-[14px]">Account Details</span>
+                            </div>
+                            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 px-5 hover:bg-gray-50 transition-colors cursor-pointer interactive-btn" onclick="showToast('Security Options', 'info')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-gray-50 flex justify-center items-center text-gray-700">
+                                    <span class="material-symbols-outlined">lock</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-[14px] block mb-0.5">Security & 2FA</span>
+                                    <span class="text-[10px] font-extrabold text-orange-500 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 uppercase tracking-wide">Action Required</span>
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 px-5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer interactive-btn" onclick="showToast('Referral link copied! Share to earn ₦500 bonus.', 'success')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-green-50 dark:bg-green-900/30 flex justify-center items-center text-green-600">
+                                    <span class="material-symbols-outlined">group_add</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-[14px] block mb-0.5 dark:text-white">Refer &amp; Earn</span>
+                                    <span class="text-[10px] font-extrabold text-green-600 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded border border-green-200 dark:border-green-800 uppercase tracking-wide">₦500 per referral</span>
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 px-5 hover:bg-red-50 transition-colors cursor-pointer group interactive-btn" onclick="showToast('Logged Out Successfully', 'success')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-red-50 flex justify-center items-center text-red-500 group-hover:bg-red-100 transition-colors">
+                                    <span class="material-symbols-outlined">logout</span>
+                                </div>
+                                <span class="font-extrabold text-[14px] text-red-600">Secure Logout</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center pt-2 pb-6">
+                    <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">Vertex Booster v2.1.0</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Nav Bar -->
+        <nav class="absolute bottom-0 left-0 w-full glass-nav dark:!bg-gray-900/85 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] dark:shadow-none z-50 pb-7 sm:pb-4 pt-4 px-6 md:px-12 sm:rounded-none rounded-t-[36px] border-t border-white dark:border-gray-800 transition-colors" style="bottom: 0px;">
+            <div class="flex justify-between items-center max-w-sm mx-auto">
+                <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1.5 interactive-btn w-[60px] relative">
+                    <div class="nav-indicator w-[30px] h-1.5 bg-primary rounded-full mb-1 absolute -top-4 opacity-100 transition-all duration-300"></div>
+                    <span class="material-symbols-outlined nav-icon text-[28px] text-primary icon-fill transition-colors">grid_view</span>
+                    <span class="text-[10px] font-extrabold text-primary transition-colors tracking-wide">Home</span>
+                </button>
+                
+                <button onclick="switchTab('services')" id="nav-services" class="flex flex-col items-center gap-1.5 interactive-btn w-[60px] relative">
+                    <div class="nav-indicator w-[30px] h-1.5 bg-primary rounded-full mb-1 absolute -top-4 opacity-0 transition-all duration-300 transform scale-50"></div>
+                    <span class="material-symbols-outlined nav-icon text-[28px] text-gray-400 transition-colors">storefront</span>
+                    <span class="text-[10px] font-bold text-gray-500 transition-colors tracking-wide">Services</span>
+                </button>
+
+                <button onclick="switchTab('wallet')" id="nav-wallet" class="flex flex-col items-center gap-1.5 interactive-btn w-[60px] relative">
+                    <div class="nav-indicator w-[30px] h-1.5 bg-primary rounded-full mb-1 absolute -top-4 opacity-0 transition-all duration-300 transform scale-50"></div>
+                    <span class="material-symbols-outlined nav-icon text-[28px] text-gray-400 transition-colors">account_balance_wallet</span>
+                    <span class="text-[10px] font-bold text-gray-500 transition-colors tracking-wide">Wallet</span>
+                </button>
+
+                <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1.5 interactive-btn w-[60px] relative">
+                    <div class="nav-indicator w-[30px] h-1.5 bg-primary rounded-full mb-1 absolute -top-4 opacity-0 transition-all duration-300 transform scale-50"></div>
+                    <span class="material-symbols-outlined nav-icon text-[28px] text-gray-400 transition-colors">person</span>
+                    <span class="text-[10px] font-bold text-gray-500 transition-colors tracking-wide">Profile</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Bottom Sheet Overlay -->
+        <div id="sheet-overlay" class="absolute inset-0 bg-gray-900/60 z-[60] hidden opacity-0 transition-opacity" onclick="closeBottomSheet()"></div>
+        
+        <!-- Bottom Sheet Container -->
+        <div id="bottom-sheet" class="absolute bottom-0 left-0 w-full bg-white rounded-t-[32px] z-[70] translate-y-full flex flex-col max-h-[85%] shadow-[0_-20px_40px_rgba(0,0,0,0.15)] hidden">
+            <!-- Notch -->
+            <div class="w-full flex justify-center py-4 cursor-pointer" onclick="closeBottomSheet()">
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+            
+            <div id="sheet-content" class="px-6 pb-8 overflow-y-auto no-scrollbar w-full flex-1">
+                <!-- Dynamic Content Will Go Here -->
+            </div>
+        </div>
+
+        <!-- Success Fullscreen Overlay -->
+        <div id="success-overlay" class="absolute inset-0 bg-white z-[100] hidden flex-col items-center justify-center px-6 text-center opacity-0 transition-opacity">
+            <div class="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center text-green-500 mb-6 scale-50 transition-transform duration-500" id="success-icon-wrap">
+                <span class="material-symbols-outlined text-[48px] icon-fill">check_circle</span>
+            </div>
+            <h2 class="font-headline font-extrabold text-2xl text-gray-900 mb-2">Order Successful!</h2>
+            <p class="text-gray-500 font-medium text-sm mb-8 px-4">Your request is being processed. You can track its status in the transaction logs.</p>
+            <button class="bg-gray-900 text-white w-full py-4 rounded-2xl font-bold text-[15px] interactive-btn shadow-xl shadow-gray-900/20" onclick="closeSuccessOverlay()">Done</button>
+        </div>
+
+    </div>
+
+    <!-- App Logic -->
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }).catch((error) => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+            });
+        }
+
+        const views = ['home', 'services', 'wallet', 'profile'];
+        let toastTimeout;
+        let isSheetOpen = false;
+
+        // ==========================================
+        // API Services State
+        // ==========================================
+        let allServices = [];
+        let filteredServices = [];
+        let currentPlatformFilter = 'All';
+        let currentCategoryFilter = 'All';
+        let currentSearchQuery = '';
+        let servicesLoaded = false;
+        let selectedNetwork = 'MTN'; // Default
+
+        // Platform icons & colors mapping
+        const platformConfig = {
+            'Instagram': { icon: 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg', color: 'from-yellow-400 via-pink-500 to-purple-500', bg: 'bg-gradient-to-tr from-pink-50 to-purple-50', textColor: 'text-pink-600' },
+            'TikTok': { icon: '', materialIcon: 'music_note', color: 'from-gray-900 to-gray-700', bg: 'bg-gray-50', textColor: 'text-gray-900' },
+            'Twitter': { icon: '', materialIcon: 'alternate_email', color: 'from-blue-400 to-blue-600', bg: 'bg-blue-50', textColor: 'text-blue-500' },
+            'Facebook': { icon: '', materialIcon: 'facebook', color: 'from-blue-600 to-blue-800', bg: 'bg-blue-50', textColor: 'text-blue-700' },
+            'YouTube': { icon: '', materialIcon: 'play_circle', color: 'from-red-500 to-red-700', bg: 'bg-red-50', textColor: 'text-red-600' },
+            'Telegram': { icon: '', materialIcon: 'send', color: 'from-blue-400 to-cyan-500', bg: 'bg-cyan-50', textColor: 'text-cyan-600' },
+            'Spotify': { icon: '', materialIcon: 'headphones', color: 'from-green-500 to-green-700', bg: 'bg-green-50', textColor: 'text-green-600' },
+            'LinkedIn': { icon: '', materialIcon: 'work', color: 'from-blue-700 to-blue-900', bg: 'bg-blue-50', textColor: 'text-blue-800' },
+            'Snapchat': { icon: '', materialIcon: 'photo_camera', color: 'from-yellow-300 to-yellow-500', bg: 'bg-yellow-50', textColor: 'text-yellow-600' },
+            'Discord': { icon: '', materialIcon: 'forum', color: 'from-indigo-500 to-indigo-700', bg: 'bg-indigo-50', textColor: 'text-indigo-600' },
+            'Twitch': { icon: '', materialIcon: 'videogame_asset', color: 'from-purple-500 to-purple-700', bg: 'bg-purple-50', textColor: 'text-purple-600' },
+            'Pinterest': { icon: '', materialIcon: 'push_pin', color: 'from-red-500 to-red-600', bg: 'bg-red-50', textColor: 'text-red-500' },
+            'Reddit': { icon: '', materialIcon: 'forum', color: 'from-orange-500 to-orange-700', bg: 'bg-orange-50', textColor: 'text-orange-600' },
+            'Threads': { icon: '', materialIcon: 'tag', color: 'from-gray-800 to-gray-900', bg: 'bg-gray-50', textColor: 'text-gray-800' },
+            'SoundCloud': { icon: '', materialIcon: 'graphic_eq', color: 'from-orange-400 to-orange-600', bg: 'bg-orange-50', textColor: 'text-orange-500' },
+            'Other': { icon: '', materialIcon: 'public', color: 'from-gray-400 to-gray-600', bg: 'bg-gray-50', textColor: 'text-gray-600' },
+        };
+
+        // ==========================================
+        // Format Naira
+        // ==========================================
+        function formatNaira(amount) {
+            const num = parseFloat(amount);
+            if (isNaN(num)) return '₦0';
+            return '₦' + num.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        // ==========================================
+        // Load Services from API
+        // ==========================================
+        async function loadServices() {
+            const loadingEl = document.getElementById('smm-loading');
+            const errorEl = document.getElementById('smm-error');
+            const servicesEl = document.getElementById('smm-services');
+            const emptyEl = document.getElementById('smm-empty');
+            const countEl = document.getElementById('services-count');
+
+            // Show loading
+            loadingEl.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+            servicesEl.innerHTML = '';
+            emptyEl.classList.add('hidden');
+            countEl.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/services');
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    allServices = result.data.services || [];
+                    servicesLoaded = true;
+
+                    // Build platform filter pills
+                    buildPlatformFilters();
+                    // Build category dropdown
+                    buildCategoryDropdown(result.data.categorized || {});
+                    // Render services
+                    filterServices();
+
+                    loadingEl.classList.add('hidden');
+                    console.log(`Loaded ${allServices.length} services from PrimeSMMHub`);
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (err) {
+                console.error('Failed to load services:', err);
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                showToast('Failed to load services. Tap to retry.', 'error');
+            }
+        }
+
+        // ==========================================
+        // Build Platform Filter Pills
+        // ==========================================
+        function buildPlatformFilters() {
+            const container = document.getElementById('platform-filters');
+            const platforms = [...new Set(allServices.map(s => s.platform))].sort();
+
+            container.innerHTML = `<span class="platform-pill active px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-sm shadow-primary/20 cursor-pointer interactive-btn" data-platform="All" onclick="filterByPlatform('All', this)">All (${allServices.length})</span>`;
+
+            platforms.forEach(p => {
+                const count = allServices.filter(s => s.platform === p).length;
+                if (count > 0) {
+                    container.innerHTML += `<span class="platform-pill px-5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm cursor-pointer interactive-btn" data-platform="${p}" onclick="filterByPlatform('${p}', this)">${p} (${count})</span>`;
+                }
+            });
+        }
+
+        // ==========================================
+        // Build Category Dropdown
+        // ==========================================
+        function buildCategoryDropdown(categorized) {
+            const select = document.getElementById('category-filter');
+            select.innerHTML = '<option value="All">All Categories</option>';
+
+            const categories = Object.keys(categorized).sort();
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = `${cat} (${categorized[cat].length})`;
+                select.appendChild(opt);
+            });
+        }
+
+        // ==========================================
+        // Filter by Platform
+        // ==========================================
+        function filterByPlatform(platform, el) {
+            currentPlatformFilter = platform;
+            // Update pill styles
+            document.querySelectorAll('.platform-pill').forEach(pill => {
+                pill.classList.remove('bg-primary', 'text-white', 'shadow-primary/20');
+                pill.classList.add('bg-white', 'dark:bg-gray-800', 'border', 'border-gray-200', 'dark:border-gray-700', 'text-gray-700', 'dark:text-gray-300');
+            });
+            el.classList.add('bg-primary', 'text-white', 'shadow-primary/20');
+            el.classList.remove('bg-white', 'dark:bg-gray-800', 'border', 'border-gray-200', 'dark:border-gray-700', 'text-gray-700', 'dark:text-gray-300');
+            filterServices();
+        }
+
+        // ==========================================
+        // Filter by Category
+        // ==========================================
+        function filterByCategory(category) {
+            currentCategoryFilter = category;
+            filterServices();
+        }
+
+        // ==========================================
+        // Filter & Render Services
+        // ==========================================
+        function filterServices() {
+            const searchInput = document.getElementById('smm-search');
+            currentSearchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            filteredServices = allServices.filter(s => {
+                const matchesPlatform = currentPlatformFilter === 'All' || s.platform === currentPlatformFilter;
+                const matchesCategory = currentCategoryFilter === 'All' || s.category === currentCategoryFilter;
+                const matchesSearch = !currentSearchQuery || 
+                    s.name.toLowerCase().includes(currentSearchQuery) || 
+                    s.category.toLowerCase().includes(currentSearchQuery) ||
+                    s.platform.toLowerCase().includes(currentSearchQuery) ||
+                    String(s.id).includes(currentSearchQuery);
+                return matchesPlatform && matchesCategory && matchesSearch;
+            });
+
+            renderServices(filteredServices);
+        }
+
+        // ==========================================
+        // Render Service Cards
+        // ==========================================
+        function renderServices(services) {
+            const container = document.getElementById('smm-services');
+            const emptyEl = document.getElementById('smm-empty');
+            const countEl = document.getElementById('services-count');
+
+            if (services.length === 0) {
+                container.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                countEl.classList.add('hidden');
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+            countEl.classList.remove('hidden');
+            countEl.querySelector('p').textContent = `Showing ${services.length} of ${allServices.length} services`;
+
+            // Limit initial render for performance (show first 50, load more on demand)
+            const displayLimit = 50;
+            const toShow = services.slice(0, displayLimit);
+
+            container.innerHTML = toShow.map(service => {
+                const config = platformConfig[service.platform] || platformConfig['Other'];
+                const priceFormatted = formatNaira(service.rate);
+                const refillBadge = service.refill ? '<span class="px-2 py-0.5 bg-green-50 dark:bg-green-900/30 text-green-600 text-[9px] font-extrabold rounded border border-green-100 dark:border-green-800 uppercase tracking-wide">Refill</span>' : '';
+
+                const iconHtml = config.icon 
+                    ? `<img src="${config.icon}" class="w-12 h-12 rounded-2xl ${config.bg} object-cover p-2 border border-gray-100 dark:border-gray-700">`
+                    : `<div class="w-12 h-12 rounded-2xl ${config.bg} dark:bg-gray-700 flex items-center justify-center ${config.textColor} border border-gray-100 dark:border-gray-700"><span class="material-symbols-outlined text-[26px] icon-fill">${config.materialIcon}</span></div>`;
+
+                return `
+                    <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-4 card-hover transition-colors">
+                        <div class="flex items-start gap-3">
+                            ${iconHtml}
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-[13px] leading-snug text-gray-900 dark:text-white line-clamp-2">${service.name}</h4>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">${service.platform}</span>
+                                    <span class="text-gray-300 dark:text-gray-600 text-[8px]">•</span>
+                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">Min: ${service.min.toLocaleString()}</span>
+                                    ${refillBadge}
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <span class="font-extrabold text-primary text-[15px]">${priceFormatted}</span>
+                                <span class="text-[9px] text-gray-400 dark:text-gray-500 font-medium block">/1k</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button class="bg-primary/10 dark:bg-primary/20 text-primary font-bold text-[12px] py-3 px-3 rounded-xl flex-[0.7] interactive-btn" onclick="showServiceDetails(${service.id})">Details</button>
+                            <button class="bg-primary text-white font-bold text-[12px] py-3 px-3 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openSMMOrderSheet(${service.id})">Order Now</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Show "load more" if truncated
+            if (services.length > displayLimit) {
+                container.innerHTML += `
+                    <div class="col-span-full text-center py-6">
+                        <button onclick="renderAllServices()" class="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-8 py-3 rounded-2xl font-bold text-sm interactive-btn hover:border-primary hover:text-primary transition-colors">
+                            Load ${services.length - displayLimit} More Services
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderAllServices() {
+            const container = document.getElementById('smm-services');
+            // Re-render without limit
+            const services = filteredServices;
+            const countEl = document.getElementById('services-count');
+            countEl.querySelector('p').textContent = `Showing all ${services.length} services`;
+
+            container.innerHTML = services.map(service => {
+                const config = platformConfig[service.platform] || platformConfig['Other'];
+                const priceFormatted = formatNaira(service.rate);
+                const refillBadge = service.refill ? '<span class="px-2 py-0.5 bg-green-50 dark:bg-green-900/30 text-green-600 text-[9px] font-extrabold rounded border border-green-100 dark:border-green-800 uppercase tracking-wide">Refill</span>' : '';
+
+                const iconHtml = config.icon 
+                    ? `<img src="${config.icon}" class="w-12 h-12 rounded-2xl ${config.bg} object-cover p-2 border border-gray-100 dark:border-gray-700">`
+                    : `<div class="w-12 h-12 rounded-2xl ${config.bg} dark:bg-gray-700 flex items-center justify-center ${config.textColor} border border-gray-100 dark:border-gray-700"><span class="material-symbols-outlined text-[26px] icon-fill">${config.materialIcon}</span></div>`;
+
+                return `
+                    <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-4 card-hover transition-colors">
+                        <div class="flex items-start gap-3">
+                            ${iconHtml}
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-[13px] leading-snug text-gray-900 dark:text-white line-clamp-2">${service.name}</h4>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">${service.platform}</span>
+                                    <span class="text-gray-300 dark:text-gray-600 text-[8px]">•</span>
+                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">Min: ${service.min.toLocaleString()}</span>
+                                    ${refillBadge}
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <span class="font-extrabold text-primary text-[15px]">${priceFormatted}</span>
+                                <span class="text-[9px] text-gray-400 dark:text-gray-500 font-medium block">/1k</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button class="bg-primary/10 dark:bg-primary/20 text-primary font-bold text-[12px] py-3 px-3 rounded-xl flex-[0.7] interactive-btn" onclick="showServiceDetails(${service.id})">Details</button>
+                            <button class="bg-primary text-white font-bold text-[12px] py-3 px-3 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openSMMOrderSheet(${service.id})">Order Now</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // Show Service Details (Info bottom sheet)
+        // ==========================================
+        function showServiceDetails(serviceId) {
+            const service = allServices.find(s => s.id === serviceId);
+            if (!service) return;
+
+            const config = platformConfig[service.platform] || platformConfig['Other'];
+            const priceFormatted = formatNaira(service.rate);
+
+            openBottomSheet(service.name, 'service-detail', priceFormatted, '');
+
+            // Override content with detailed view
+            const content = document.getElementById('sheet-content');
+            content.innerHTML = `
+                <h3 class="font-headline font-extrabold text-xl pr-8 text-gray-900 dark:text-white">${service.name}</h3>
+                <p class="text-[11px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Service ID: ${service.id}</p>
+                
+                <div class="mt-5 p-5 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-200 dark:border-gray-700 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Platform</span>
+                        <span class="text-sm font-extrabold text-gray-900 dark:text-white">${service.platform}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Category</span>
+                        <span class="text-sm font-bold text-gray-700 dark:text-gray-300">${service.category}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Rate per 1K</span>
+                        <span class="text-sm font-extrabold text-primary">${priceFormatted}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Min Order</span>
+                        <span class="text-sm font-bold text-gray-700 dark:text-gray-300">${service.min.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Max Order</span>
+                        <span class="text-sm font-bold text-gray-700 dark:text-gray-300">${service.max.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Refill</span>
+                        <span class="text-sm font-bold ${service.refill ? 'text-green-600' : 'text-gray-400'}">${service.refill ? '✓ Available' : '✗ Not available'}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Type</span>
+                        <span class="text-sm font-bold text-gray-700 dark:text-gray-300">${service.type}</span>
+                    </div>
+                </div>
+
+                <button class="w-full bg-primary text-white font-bold py-4 rounded-xl mt-6 shadow-lg shadow-primary/25 interactive-btn flex justify-center items-center gap-2" onclick="closeBottomSheet(); setTimeout(() => openSMMOrderSheet(${service.id}), 400);">
+                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span> Order This Service
+                </button>
+            `;
+        }
+
+        // ==========================================
+        // Open SMM Order Sheet (with real API)
+        // ==========================================
+        function openSMMOrderSheet(serviceId) {
+            const service = allServices.find(s => s.id === serviceId);
+            if (!service) { showToast('Service not found', 'error'); return; }
+
+            const priceFormatted = formatNaira(service.rate);
+            const pricePerUnit = parseFloat(service.rate) / 1000; // Price per single unit
+
+            if (isSheetOpen) return;
+            isSheetOpen = true;
+
+            const overlay = document.getElementById('sheet-overlay');
+            const sheet = document.getElementById('bottom-sheet');
+            const content = document.getElementById('sheet-content');
+
+            content.innerHTML = `
+                <h3 class="font-headline font-extrabold text-xl pr-8 text-gray-900 dark:text-white">${service.name}</h3>
+                <div class="flex items-center gap-2 mt-1 mb-5">
+                    <span class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">ID: ${service.id}</span>
+                    <span class="text-gray-300 text-[8px]">•</span>
+                    <span class="text-[11px] text-gray-400 font-bold">${service.platform}</span>
+                    <span class="text-gray-300 text-[8px]">•</span>
+                    <span class="text-[11px] font-extrabold text-primary">${priceFormatted}/1k</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Target Link / Username</label>
+                        <input type="text" id="order-link" placeholder="https://instagram.com/post/..." class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white">
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Quantity</label>
+                            <input type="number" id="order-quantity" placeholder="${service.min}" min="${service.min}" max="${service.max}" value="${service.min}" oninput="updateOrderTotal(${service.id})" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white">
+                            <p class="text-[10px] text-gray-400 mt-1 font-medium">Min: ${service.min.toLocaleString()} • Max: ${service.max.toLocaleString()}</p>
+                        </div>
+                        <div class="flex-[0.7]">
+                            <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Total Cost</label>
+                            <div id="order-total" class="w-full mt-1.5 px-3 py-3.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-extrabold text-primary flex items-center h-[50px] overflow-hidden">${formatNaira(pricePerUnit * service.min)}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="order-error" class="hidden mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 text-[12px] font-semibold"></div>
+                
+                <button id="order-submit-btn" class="w-full bg-primary text-white font-bold py-4 rounded-xl mt-6 shadow-lg shadow-primary/25 interactive-btn flex justify-center items-center gap-2" onclick="submitRealOrder(${service.id}, this)">
+                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span> Confirm Order
+                </button>
+            `;
+
+            overlay.classList.remove('hidden', 'sheet-overlay-exit');
+            sheet.classList.remove('hidden', 'sheet-exit');
+            requestAnimationFrame(() => {
+                overlay.classList.add('sheet-overlay-enter');
+                sheet.classList.add('sheet-enter');
+            });
+        }
+
+        // ==========================================
+        // Update Order Total dynamically
+        // ==========================================
+        function updateOrderTotal(serviceId) {
+            const service = allServices.find(s => s.id === serviceId);
+            if (!service) return;
+
+            const qtyInput = document.getElementById('order-quantity');
+            const totalEl = document.getElementById('order-total');
+            const qty = parseInt(qtyInput.value) || 0;
+            const pricePerUnit = parseFloat(service.rate) / 1000;
+            const total = pricePerUnit * qty;
+
+            totalEl.textContent = formatNaira(total);
+        }
+
+        // ==========================================
+        // Submit Real Order to API
+        // ==========================================
+        async function submitRealOrder(serviceId, btn) {
+            const service = allServices.find(s => s.id === serviceId);
+            if (!service) return;
+
+            const link = document.getElementById('order-link').value.trim();
+            const quantity = parseInt(document.getElementById('order-quantity').value);
+            const errorEl = document.getElementById('order-error');
+
+            // Validation
+            if (!link) {
+                errorEl.textContent = 'Please enter a target link or username.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!quantity || quantity < service.min) {
+                errorEl.textContent = `Minimum quantity is ${service.min.toLocaleString()}`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (quantity > service.max) {
+                errorEl.textContent = `Maximum quantity is ${service.max.toLocaleString()}`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">sync</span> Processing...';
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            try {
+                const response = await fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service: serviceId, link, quantity }),
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.orderId) {
+                    closeBottomSheet();
+                    setTimeout(() => {
+                        showSuccessOverlay();
+                        // Update the success message with order ID
+                        const successMsg = document.querySelector('#success-overlay p');
+                        if(successMsg) successMsg.textContent = `Order #${result.orderId} placed successfully! Track status in your transaction logs.`;
+                        loadWallet(); // Refresh balance and activity
+                    }, 400);
+                } else {
+                    errorEl.textContent = result.error || 'Order failed. Please try again.';
+                    errorEl.classList.remove('hidden');
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Network error. Please check your connection and try again.';
+                errorEl.classList.remove('hidden');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+
+        // ==========================================
+        // Theme
+        // ==========================================
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                if(document.querySelector('#theme-icon')) document.querySelector('#theme-icon').textContent = 'dark_mode';
+                showToast('Light Mode Enabled', 'info');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                if(document.querySelector('#theme-icon')) document.querySelector('#theme-icon').textContent = 'light_mode';
+                showToast('Dark Mode Enabled', 'success');
+            }
+        }
+
+        // ==========================================
+        // Splash → Auth → Dashboard
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            switchTab('home');
+            if(document.querySelector('#theme-icon')) {
+                document.querySelector('#theme-icon').textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+            }
+
+            // Pre-load services in background
+            // Pre-load services and wallet
+            loadServices();
+            loadWallet();
+
+            
+            setTimeout(() => {
+                const splash = document.getElementById('view-splash');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.classList.add('hide');
+                    document.getElementById('view-register').classList.remove('hide');
+                }, 700);
+            }, 2500);
+        });
+
+        function toggleAuthView(target) {
+            if (target === 'login') {
+                document.getElementById('view-register').classList.add('hide');
+                document.getElementById('view-login').classList.remove('hide');
+            } else {
+                document.getElementById('view-login').classList.add('hide');
+                document.getElementById('view-register').classList.remove('hide');
+            }
+        }
+
+        function completeAuth(btnId, viewId, successMsg) {
+            const btn = document.getElementById(btnId);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Validating...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+            
+            // Get form data
+            const form = btn.closest('form');
+            const inputs = form.querySelectorAll('input');
+            const isRegister = viewId === 'view-register';
+            
+            let endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+            let payload = {};
+            
+            inputs.forEach(input => {
+                if (input.type !== 'submit') {
+                    payload[input.type === 'email' ? 'email' : input.type === 'password' ? 'password' : 'name'] = input.value;
+                }
+            });
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Store token
+                    localStorage.setItem('vertex_token', data.token);
+                    localStorage.setItem('vertex_user', JSON.stringify(data.user));
+                    
+                    document.getElementById(viewId).style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById(viewId).classList.add('hide');
+                        showToast(successMsg);
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('opacity-80', 'pointer-events-none');
+                    }, 500);
+                } else {
+                    showToast(data.error || 'Authentication failed', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            })
+            .catch(err => {
+                showToast('Connection error', 'error');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            });
+        }
+
+        // ==========================================
+        // Bottom Sheet (generic for VTU, Accounts, etc.)
+        // ==========================================
+        function openBottomSheet(serviceTitle, serviceType, price, details) {
+            if (isSheetOpen) return;
+            isSheetOpen = true;
+
+            const overlay = document.getElementById('sheet-overlay');
+            const sheet = document.getElementById('bottom-sheet');
+            const content = document.getElementById('sheet-content');
+
+            let htmlForm = '';
+            if (serviceType === 'smm') {
+                htmlForm = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8">${serviceTitle}</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-5 leading-relaxed">${details}</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Target Link / Username</label>
+                            <input type="text" placeholder="https://instagram.com/..." class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Quantity</label>
+                                <input type="number" placeholder="1000" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+                            <div class="flex-[0.6]">
+                                <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Rate</label>
+                                <div class="w-full mt-1.5 px-3 py-3.5 bg-gray-100 border border-gray-200 rounded-xl text-sm font-extrabold text-primary flex items-center h-[50px] overflow-hidden">${price}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="w-full bg-primary text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-primary/25 interactive-btn flex justify-center items-center gap-2" onclick="processOrder(this)">Confirm Order</button>
+                `;
+            } else if (serviceType === 'vtu') {
+                 htmlForm = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8">${serviceTitle}</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-5">${details}</p>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-4 gap-2" id="network-selector">
+                            <div onclick="selectNetwork('GLO', this)" class="network-pill p-2 border border-gray-200 bg-white rounded-xl flex items-center justify-center font-bold text-xs cursor-pointer text-gray-500 hover:border-primary transition-all">GLO</div>
+                            <div onclick="selectNetwork('MTN', this)" class="network-pill p-2 border-2 border-primary bg-primary/5 rounded-xl flex items-center justify-center font-bold text-xs text-primary cursor-pointer">MTN</div>
+                            <div onclick="selectNetwork('AIRTEL', this)" class="network-pill p-2 border border-gray-200 bg-white rounded-xl flex items-center justify-center font-bold text-xs text-gray-500 cursor-pointer hover:border-primary transition-all">AIRTEL</div>
+                            <div onclick="selectNetwork('9MOBILE', this)" class="network-pill p-2 border border-gray-200 bg-white rounded-xl flex items-center justify-center font-bold text-xs text-gray-500 cursor-pointer hover:border-primary transition-all">9MOB</div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Phone Number</label>
+                            <input type="tel" placeholder="080XXXXXXXX" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Amount</label>
+                            <input type="number" placeholder="Amount (₦)" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn flex justify-center items-center gap-2" onclick="submitVTUOrder(this)">Pay Securely</button>
+                `;
+            } else if (serviceType === 'account') {
+                htmlForm = `
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-gray-900 rounded-[16px] text-white flex items-center justify-center"><span class="material-symbols-outlined">verified</span></div>
+                        <div><h3 class="font-headline font-extrabold text-xl leading-tight text-gray-900">${serviceTitle}</h3></div>
+                    </div>
+                    <p class="text-[13px] text-gray-500 font-medium mb-6 leading-relaxed">${details} Credentials will be sent immediately to your email.</p>
+                    <div class="p-5 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-200 dark:border-gray-700 mb-6 w-full">
+                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Unit Price</span><span class="text-sm font-extrabold">${price}</span></div>
+                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Escrow Fee</span><span class="text-sm font-extrabold">₦500</span></div>
+                        <div class="h-px w-full bg-gray-200 dark:bg-gray-700 my-4 transform scale-x-110"></div>
+                        <div class="flex justify-between items-center mt-3"><span class="text-sm font-bold text-gray-900 dark:text-white">Amount Due</span><span class="text-xl font-extrabold text-primary">${price}</span></div>
+                    </div>
+                    <button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/25 interactive-btn flex justify-center items-center gap-2" onclick="submitAccountOrder('${serviceTitle}', '${price}', this)">Complete Purchase</button>
+                `;
+
+            } else if (serviceType === 'service-detail') {
+                // Handled by caller (showServiceDetails)
+                htmlForm = '';
+            }
+
+            if (htmlForm) content.innerHTML = htmlForm;
+
+            overlay.classList.remove('hidden', 'sheet-overlay-exit');
+            sheet.classList.remove('hidden', 'sheet-exit');
+            requestAnimationFrame(() => {
+                overlay.classList.add('sheet-overlay-enter');
+                sheet.classList.add('sheet-enter');
+            });
+        }
+
+        function closeBottomSheet() {
+            if (!isSheetOpen) return;
+            const overlay = document.getElementById('sheet-overlay');
+            const sheet = document.getElementById('bottom-sheet');
+            overlay.classList.remove('sheet-overlay-enter');
+            sheet.classList.remove('sheet-enter');
+            overlay.classList.add('sheet-overlay-exit');
+            sheet.classList.add('sheet-exit');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                sheet.classList.add('hidden');
+                isSheetOpen = false;
+            }, 300);
+        }
+
+        function processOrder(btn) {
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin" style="font-size: 20px;">sync</span> Processing...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+            setTimeout(() => {
+                closeBottomSheet();
+                setTimeout(() => showSuccessOverlay(), 400);
+            }, 1200);
+        }
+
+        function showSuccessOverlay() {
+            const overlay = document.getElementById('success-overlay');
+            const iconWrap = document.getElementById('success-icon-wrap');
+            overlay.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                setTimeout(() => { iconWrap.classList.remove('scale-50'); iconWrap.classList.add('scale-100'); }, 50);
+            });
+        }
+
+        function closeSuccessOverlay() {
+            const overlay = document.getElementById('success-overlay');
+            const iconWrap = document.getElementById('success-icon-wrap');
+            overlay.style.opacity = '0';
+            iconWrap.classList.remove('scale-100');
+            iconWrap.classList.add('scale-50');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+        
+        // ==========================================
+        // Tab Navigation
+        // ==========================================
+        function switchTab(tabName) {
+            views.forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                const navBtn = document.getElementById(`nav-${v}`);
+                const icon = navBtn.querySelector('.nav-icon');
+                const label = navBtn.querySelector('span:last-child');
+                const indicator = navBtn.querySelector('.nav-indicator');
+                
+                if (v === tabName) {
+                    icon.classList.add('text-primary', 'icon-fill');
+                    icon.classList.remove('text-gray-400');
+                    label.classList.add('text-primary', 'font-extrabold');
+                    label.classList.remove('text-gray-500', 'font-bold');
+                    indicator.classList.remove('opacity-0', 'scale-50');
+                    indicator.classList.add('opacity-100', 'scale-100');
+                    viewEl.classList.remove('hide');
+                    viewEl.classList.remove('page-enter');
+                    void viewEl.offsetWidth;
+                    viewEl.classList.add('page-enter');
+                } else {
+                    icon.classList.remove('text-primary', 'icon-fill');
+                    icon.classList.add('text-gray-400');
+                    label.classList.remove('text-primary', 'font-extrabold');
+                    label.classList.add('text-gray-500', 'font-bold');
+                    indicator.classList.add('opacity-0', 'scale-50');
+                    indicator.classList.remove('opacity-100', 'scale-100');
+                    viewEl.classList.add('hide');
+                }
+            });
+            document.getElementById('main-content').scrollTo({top: 0, behavior: 'smooth'});
+
+            // Load services and wallet when navigating
+            if (tabName === 'services' && !servicesLoaded) {
+                loadServices();
+            }
+            loadWallet();
+
+        }
+
+        const serviceTabs = ['smm', 'vtu', 'accounts', 'numbers'];
+        function setActiveServiceTab(tabName) {
+            serviceTabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const content = document.getElementById(`content-${t}`);
+                if (t === tabName) {
+                    btn.classList.add('bg-white', 'text-primary', 'shadow-sm');
+                    btn.classList.remove('text-gray-600', 'hover:text-gray-900');
+                    content.classList.remove('hide');
+                } else {
+                    btn.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+                    btn.classList.add('text-gray-600', 'hover:text-gray-900');
+                    content.classList.add('hide');
+                }
+            });
+        }
+        
+        // ==========================================
+        // Toast
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+            clearTimeout(toastTimeout);
+            msgEl.textContent = message;
+            if(type === 'success') { iconEl.textContent = 'check_circle'; iconEl.className = 'material-symbols-outlined text-green-400 icon-fill text-[20px]'; }
+            else if(type === 'info') { iconEl.textContent = 'info'; iconEl.className = 'material-symbols-outlined text-blue-400 icon-fill text-[20px]'; }
+            else if(type === 'error') { iconEl.textContent = 'error'; iconEl.className = 'material-symbols-outlined text-red-500 icon-fill text-[20px]'; }
+            toast.classList.remove('hidden', 'toast-exit');
+            toast.classList.add('flex', 'toast-enter');
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('flex', 'toast-exit'); }, 300);
+            }, 2000);
+        }
+        
+        // ==========================================
+        // VTU Network Selection
+        // ==========================================
+        function selectNetwork(network, el) {
+            selectedNetwork = network;
+            document.querySelectorAll('.network-pill').forEach(pill => {
+                pill.classList.remove('border-2', 'border-primary', 'bg-primary/5', 'text-primary');
+                pill.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-500');
+            });
+            el.classList.add('border-2', 'border-primary', 'bg-primary/5', 'text-primary');
+            el.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-500');
+        }
+
+        async function loadWallet() {
+            try {
+                const response = await fetch('/api/wallet/balance');
+                const result = await response.json();
+                if (result.success) {
+                    updateWalletUI(result.data);
+                }
+            } catch (err) {
+                console.error('Failed to load wallet:', err);
+            }
+        }
+
+        function updateWalletUI(data) {
+            const balanceDisplays = document.querySelectorAll('.balance-text');
+            const balanceInt = Math.floor(data.balance);
+            const balanceDec = (data.balance % 1).toFixed(2).substring(1);
+            
+            balanceDisplays.forEach(el => {
+                el.classList.remove('animate-pulse');
+                el.innerHTML = `₦${balanceInt.toLocaleString()}<span class="text-xl text-purple-300 font-semibold">${balanceDec}</span>`;
+            });
+
+            // Update Wallet View specific items
+            const walletMainBalance = document.querySelector('#view-wallet h2.text-4xl');
+            if (walletMainBalance) {
+                walletMainBalance.innerHTML = `₦${balanceInt.toLocaleString()}<span class="text-xl text-gray-500 font-semibold">${balanceDec}</span>`;
+            }
+
+            // Update stats - using precise targeting
+            const walletViews = document.getElementById('view-wallet');
+            if (walletViews) {
+                const stats = walletViews.querySelectorAll('p.font-extrabold');
+                if (stats.length >= 2) {
+                    stats[0].textContent = `₦${data.totalFunded.toLocaleString()}`;
+                    stats[1].textContent = `₦${data.totalSpent.toLocaleString()}`;
+                }
+            }
+
+            // Update Transaction Logs
+            const homeLogs = document.getElementById('recent-activity-container');
+            if (homeLogs && data.transactions) {
+                homeLogs.innerHTML = data.transactions.slice(0, 5).map(txn => {
+                    const isSpend = txn.type === 'spend';
+                    const colorClass = isSpend ? 'text-gray-900 dark:text-white' : 'text-success';
+                    const bgClass = isSpend ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'bg-green-50 dark:bg-green-900/20 text-green-600';
+                    const icon = isSpend ? 'shopping_cart' : 'call_made';
+                    
+                    const orderId = txn.metadata ? txn.metadata.orderId : null;
+                    const statusUI = orderId 
+                        ? `<button onclick="checkOrderStatus('${orderId}')" class="text-[9px] font-bold text-primary uppercase mt-1 border border-primary/30 px-1.5 py-0.5 rounded hover:bg-primary/5 transition-colors">Check Status</button>`
+                        : `<p class="text-[9px] font-bold ${txn.status === 'success' ? 'text-success' : 'text-pending'} uppercase mt-1 inline-block">${txn.status}</p>`;
+
+                    return `
+                        <div class="flex items-center gap-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-2xl transition-colors cursor-pointer interactive-btn">
+                            <div class="w-12 h-12 rounded-2xl ${bgClass} flex justify-center items-center">
+                                <span class="material-symbols-outlined text-[22px]">${icon}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-bold truncate">${txn.description}</h4>
+                                <p class="text-[11px] text-onSurfaceMuted dark:text-gray-400 font-medium">${new Date(txn.timestamp).toLocaleDateString()} • ${new Date(txn.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-[15px] font-extrabold ${colorClass}">${isSpend ? '-' : '+'}₦${txn.amount.toLocaleString()}</p>
+                                ${statusUI}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        async function submitVTUOrder(btn) {
+            const amountInput = document.querySelector('#sheet-content input[type="number"]');
+            const phoneInput = document.querySelector('#sheet-content input[type="tel"]');
+            const amount = amountInput ? amountInput.value : '';
+            const phone = phoneInput ? phoneInput.value : '';
+            
+            if(!phone || !amount) { showToast('Please fill all fields', 'error'); return; }
+
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Processing...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            try {
+                const response = await fetch('/api/purchase/vtu', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'Airtime', network: selectedNetwork, phone, amount })
+                });
+                const result = await response.json();
+                if(result.success) {
+                    closeBottomSheet();
+                    showSuccessOverlay();
+                    loadWallet();
+                } else {
+                    showToast(result.error || 'Failed to process', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            } catch (err) {
+                showToast('Network error', 'error');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+
+        async function submitAccountOrder(accountName, price, btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Purchasing...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            try {
+                const response = await fetch('/api/purchase/account', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ accountName, price })
+                });
+                const result = await response.json();
+                if(result.success) {
+                    closeBottomSheet();
+                    showSuccessOverlay();
+                    loadWallet();
+                } else {
+                    showToast(result.error || 'Failed to purchase', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            } catch (err) {
+                showToast('Network error', 'error');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+
+        function initiateDeposit(method) {
+            if (method === 'bank') {
+                openBottomSheet('Virtual Bank Account', 'deposit', '', 'Transfer to this account to fund your wallet automatically.');
+                const content = document.getElementById('sheet-content');
+                content.innerHTML = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8 text-gray-900 dark:text-white">Virtual Bank Account</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-6 text-onSurfaceMuted dark:text-gray-400">Transfer precisely to the account below. Your wallet will be credited within 2 minutes.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="p-5 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Bank Name</span>
+                                <span class="text-sm font-extrabold text-gray-900 dark:text-white">Wema Bank (Vertex)</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Account Number</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-black text-primary tracking-wider">8241908221</span>
+                                    <button onclick="copyToClipboard('8241908221')" class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Account Name</span>
+                                <span class="text-sm font-bold text-gray-700 dark:text-gray-300">VERTEX-JOHN-DOE</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex gap-3">
+                            <span class="material-symbols-outlined text-blue-500 text-[20px]">info</span>
+                            <p class="text-[11px] text-blue-700 dark:text-blue-400 font-medium leading-relaxed">Deposit fee of 1% applies to all automated bank transfers.</p>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-gray-900 dark:bg-white dark:text-black text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn" onclick="closeBottomSheet(); showToast('We are watching for your transfer', 'info')">I've made the transfer</button>
+                `;
+            } else if (method === 'ussd') {
+                openBottomSheet('USSD Transfer', 'deposit', '', 'Dial the code below to fund your wallet.');
+                const content = document.getElementById('sheet-content');
+                content.innerHTML = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8 text-gray-900 dark:text-white">USSD Transfer</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-6 text-onSurfaceMuted dark:text-gray-400">Select your bank to see the magic USSD code.</p>
+                    
+                    <div class="space-y-4">
+                        <select id="ussd-bank-select" class="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white">
+                            <option value="*737#">GTBank (*737#)</option>
+                            <option value="*919#">UBA (*919#)</option>
+                            <option value="*966#">Zenith Bank (*966#)</option>
+                            <option value="*894#">First Bank (*894#)</option>
+                        </select>
+                        
+                        <div class="p-6 bg-primary rounded-[24px] text-white text-center shadow-lg shadow-primary/20">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 mb-2">Dial this code</p>
+                            <h2 class="text-3xl font-black tracking-widest mb-4" id="ussd-display">*737*2*AMOUNT*8241908221#</h2>
+                            <button onclick="copyToClipboard(document.getElementById('ussd-display').textContent)" class="bg-white/20 hover:bg-white/30 px-6 py-2 rounded-full text-xs font-bold transition-colors">Copy Code</button>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-gray-900 dark:bg-white dark:text-black text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn" onclick="closeBottomSheet()">Done</button>
+                `;
+                document.getElementById('ussd-bank-select').addEventListener('change', (e) => {
+                    const base = e.target.value.split('#')[0];
+                    document.getElementById('ussd-display').textContent = `${base}*2*AMOUNT*8241908221#`;
+                });
+            } else if (method === 'card') {
+                openBottomSheet('Card Payment', 'deposit', '', 'Enter amount to pay via debit card.');
+                const content = document.getElementById('sheet-content');
+                content.innerHTML = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8 text-gray-900 dark:text-white">Card Payment</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-6 text-onSurfaceMuted dark:text-gray-400">Pay securely with your debit card via Paystack.</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Amount (NGN)</label>
+                            <input type="number" id="card-amount" min="100" placeholder="Enter amount" class="w-full px-4 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <button id="paystack-pay-btn" class="w-full bg-primary text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-primary/30 interactive-btn" onclick="processCardPayment()">
+                        <span class="material-symbols-outlined mr-2">credit_card</span> Pay Now
+                    </button>
+                `;
+            }
+        }
+
+        async function processCardPayment() {
+            const amount = document.getElementById('card-amount').value;
+            if (!amount || amount < 100) {
+                showToast('Minimum amount is ₦100', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('paystack-pay-btn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin mr-2">sync</span> Processing...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            try {
+                const response = await fetch('/api/wallet/fund', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ 
+                        amount: parseFloat(amount),
+                        email: localStorage.getItem('userEmail') || 'user@example.com'
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success && result.authorizationUrl) {
+                    showToast('Redirecting to payment...', 'info');
+                    closeBottomSheet();
+                    window.location.href = result.authorizationUrl;
+                } else {
+                    showToast(result.error || 'Payment failed', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            } catch (err) {
+                showToast('Network error', 'error');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy', 'error');
+            });
+        }
+
+        async function checkOrderStatus(orderId) {
+            showToast('Fetching latest status...', 'info');
+            try {
+                const response = await fetch(`/api/order/status/${orderId}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const status = result.data.status || 'Unknown';
+                    const remains = result.data.remains || '0';
+                    const startCount = result.data.start_count || '0';
+                    const charges = result.data.charge || '0';
+                    
+                    openBottomSheet(`Order #${orderId}`, 'status-view', '', '');
+                    const content = document.getElementById('sheet-content');
+                    content.innerHTML = `
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h3 class="font-headline font-extrabold text-2xl text-gray-900 dark:text-white">Order Status</h3>
+                                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest">Order ID: ${orderId}</p>
+                            </div>
+                            <div class="px-4 py-2 bg-primary/10 rounded-2xl">
+                                <span class="text-primary font-black text-[12px] uppercase tracking-widest">${status}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-[24px] border border-gray-100 dark:border-gray-700">
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Start Count</p>
+                                    <p class="text-2xl font-black text-gray-900 dark:text-white">${startCount.toLocaleString()}</p>
+                                </div>
+                                <div class="bg-primary/5 p-5 rounded-[24px] border border-primary/10">
+                                    <p class="text-[10px] font-bold text-primary uppercase tracking-wider mb-2">Remaining</p>
+                                    <p class="text-2xl font-black text-primary">${remains.toLocaleString()}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-[24px] border border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                <div>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Provider Charge</p>
+                                    <p class="text-sm font-extrabold text-gray-900 dark:text-white">$${charges}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Currency</p>
+                                    <p class="text-sm font-extrabold text-gray-900 dark:text-white">USD</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-3 pt-4">
+                                <button class="w-full bg-gray-900 dark:bg-white dark:text-black text-white font-bold py-4 rounded-2xl shadow-xl shadow-gray-900/10 interactive-btn" onclick="closeBottomSheet()">Dismiss</button>
+                                ${result.data.refill === "1" ? `<button class="w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold py-4 rounded-2xl interactive-btn" onclick="requestRefill('${orderId}', this)">Request Refill</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    showToast(result.error || 'Order ID not found or expired', 'error');
+                }
+            } catch (err) {
+                showToast('Network error fetching status', 'error');
+            }
+        }
+
+        async function requestRefill(orderId, btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[20px]">sync</span> Processing...`;
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            try {
+                const response = await fetch('/api/order/refill', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ orderId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Refill request sent successfully!', 'success');
+                    closeBottomSheet();
+                } else {
+                    showToast(result.error || 'Refill not available for this order', 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('opacity-80', 'pointer-events-none');
+                }
+            } catch (err) {
+                showToast('Network error requesting refill', 'error');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+    </script>
+</body>
+</html>

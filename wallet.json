@@ -1,0 +1,15 @@
+{
+  "balance": 15000.0,
+  "totalFunded": 15000.0,
+  "totalSpent": 0,
+  "transactions": [
+    {
+      "id": "TXN_INIT",
+      "type": "deposit",
+      "amount": 15000,
+      "description": "Initial Bonus Credit",
+      "status": "success",
+      "timestamp": "2026-04-20T10:43:00.000Z"
+    }
+  ]
+}
