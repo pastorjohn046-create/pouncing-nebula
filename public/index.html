@@ -2213,63 +2213,92 @@
             }
         }
 
-        function populateServiceDropdown() {
-            const select = document.getElementById('verify-service-select');
-            if (!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="general">All Services</option>';
-            verifyServices.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.name;
-                select.appendChild(opt);
-            });
-            select.value = currentVal;
-        }
+function populateServiceDropdown() {
+    const select = document.getElementById('verify-service-select');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="general">All Services</option>';
+    verifyServices.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name;
+        select.appendChild(opt);
+    });
+    select.value = currentVal;
+}
 
-        function filterVerifyNumbers() {
-            const countrySearch = document.getElementById('verify-country-search').value.toLowerCase();
-            const serviceId = document.getElementById('verify-service-select').value;
-            
-            const filtered = verifyCountries.filter(c => 
-                c.name.toLowerCase().includes(countrySearch) || 
-                c.code.toLowerCase().includes(countrySearch) ||
-                c.prefix.includes(countrySearch)
-            );
-            
-            renderVerifyCountries(filtered);
-        }
+function filterVerifyNumbers() {
+    const countrySearch = document.getElementById('verify-country-search').value.toLowerCase();
+    const serviceId = document.getElementById('verify-service-select').value;
+    
+    const filtered = verifyCountries.filter(c => {
+        // Country search filter
+        const matchesCountry = 
+            c.name.toLowerCase().includes(countrySearch) || 
+            c.code.toLowerCase().includes(countrySearch) ||
+            c.prefix.includes(countrySearch);
+        
+        // Service filter - if "All Services" is selected, include all
+        // Otherwise, check if the country supports the selected service
+        const matchesService = 
+            serviceId === 'general' || 
+            (c.availableServices && c.availableServices.includes(serviceId));
+        
+        return matchesCountry && matchesService;
+    });
+    
+    renderVerifyCountries(filtered);
+}
 
-        function renderVerifyCountries(countries) {
-            const container = document.getElementById('verify-numbers-grid');
-            const emptyEl = document.getElementById('verify-empty');
-            if (!container) return;
-            
-            if (countries.length === 0) {
-                container.innerHTML = '';
-                emptyEl.classList.remove('hidden');
-                return;
-            }
-            
-            emptyEl.classList.add('hidden');
-            container.innerHTML = countries.map(c => `
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 card-hover grainy transition-colors">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold">
-                                ${getFlagEmoji(c.code)}
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-[14px] dark:text-white">${c.name}</h4>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${c.prefix}</p>
+function renderVerifyCountries(countries) {
+    const container = document.getElementById('verify-numbers-grid');
+    const emptyEl = document.getElementById('verify-empty');
+    if (!container) return;
+    
+    if (countries.length === 0) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+    
+    emptyEl.classList.add('hidden');
+    const serviceId = document.getElementById('verify-service-select').value;
+    const serviceName = serviceId === 'general' ? 'Any Service' : verifyServices.find(s => s.id === serviceId)?.name || 'Service';
+    
+    container.innerHTML = countries.map(c => {
+        // Calculate service-specific price if available (for now using base price)
+        const price = c.price || 1500;
+        return `
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 card-hover grainy transition-colors hover:shadow-lg transform hover:-translate-y-[2px]">
+                <div class="flex justify-between items-start mb-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            ${getFlagEmoji(c.code)}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-[16px] dark:text-white tracking-tight">${c.name}</h4>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">${serviceName}</span>
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${c.prefix}</span>
                             </div>
                         </div>
-                        <span class="text-primary font-black text-sm">${formatNaira(c.price || 1500)}</span>
                     </div>
-                    <button onclick="rentNumber('${c.code}', ${c.price || 1500})" class="w-full py-3 bg-primary text-white rounded-xl font-bold text-xs shadow-md shadow-primary/20 interactive-btn">Rent Number</button>
+                    <div class="text-right space-y-1">
+                        <span class="text-primary font-black text-sm">${formatNaira(price)}</span>
+                        <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium">per rental</span>
+                    </div>
                 </div>
-            `).join('');
-        }
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ready for verification</span>
+                    <button onclick="rentNumber('${c.code}', ${price})" class="w-auto py-2.5 px-5 bg-primary text-white rounded-xl font-bold text-sm shadow-md shadow-primary/20 interactive-btn flex items-center gap-2 hover:bg-primary/90 transition-all">
+                        Rent Number
+                        <span class="material-symbols-outlined">phone_android</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
         function getFlagEmoji(countryCode) {
             if (!countryCode) return '🏳️';

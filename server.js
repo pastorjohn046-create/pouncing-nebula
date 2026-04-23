@@ -858,10 +858,21 @@ function boostVerifyGetCountries() {
             res.on('end', () => {
                 try {
                     const parsed = JSON.parse(data);
-                    if (parsed.success || Array.isArray(parsed)) resolve(parsed);
-                    else throw new Error();
+                    if (parsed.success || Array.isArray(parsed)) {
+                        // Enhance country data with service information for frontend filtering
+                        const enhancedCountries = Array.isArray(parsed) ? parsed : parsed.data || [];
+                        const countriesWithServices = enhancedCountries.map(country => ({
+                            ...country,
+                            // Assume all common services are available in all countries
+                            // In a real implementation, this would come from the API
+                            availableServices: ['whatsapp', 'telegram', 'google', 'facebook', 'instagram', 'tiktok', 'twitter', 'binance']
+                        }));
+                        resolve(countriesWithServices);
+                    } else {
+                        throw new Error();
+                    }
                 } catch (e) {
-                    resolve([
+                    const fallbackCountries = [
                         { name: 'United States', code: 'USA', prefix: '+1', price: 1500 },
                         { name: 'United Kingdom', code: 'UK', prefix: '+44', price: 2200 },
                         { name: 'Nigeria', code: 'NG', prefix: '+234', price: 1200 },
@@ -870,11 +881,23 @@ function boostVerifyGetCountries() {
                         { name: 'Netherlands', code: 'NL', prefix: '+31', price: 2400 },
                         { name: 'Russia', code: 'RU', prefix: '+7', price: 900 },
                         { name: 'India', code: 'IN', prefix: '+91', price: 1100 }
-                    ]);
+                    ];
+                    const countriesWithServices = fallbackCountries.map(country => ({
+                        ...country,
+                        availableServices: ['whatsapp', 'telegram', 'google', 'facebook', 'instagram', 'tiktok', 'twitter', 'binance']
+                    }));
+                    resolve(countriesWithServices);
                 }
             });
         });
-        req.on('error', () => resolve([{ name: 'United States', code: 'USA', prefix: '+1', price: 1500 }]));
+        req.on('error', () => {
+            const fallbackCountries = [{ name: 'United States', code: 'USA', prefix: '+1', price: 1500 }];
+            const countriesWithServices = fallbackCountries.map(country => ({
+                ...country,
+                availableServices: ['whatsapp', 'telegram', 'google', 'facebook', 'instagram', 'tiktok', 'twitter', 'binance']
+            }));
+            resolve(countriesWithServices);
+        });
         req.write(JSON.stringify({})); req.end();
     });
 }
