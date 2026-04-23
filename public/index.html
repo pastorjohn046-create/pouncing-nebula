@@ -361,8 +361,8 @@
         <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto pt-[85px] pb-28 page-enter no-scrollbar relative w-full h-full" id="main-content">
             
-            <!-- DASHBOARD VIEW -->
-            <section id="view-home" class="px-5 md:px-8 pb-6 w-full h-auto">
+<!-- DASHBOARD VIEW -->
+<section id="view-home" class="px-5 md:px-8 pb-6 w-full h-auto hide">
                 <div class="md:grid md:grid-cols-2 md:gap-8 mt-4">
                     <div class="space-y-7">
                         <!-- Balance Card -->
@@ -1391,27 +1391,26 @@
         // ==========================================
         // Splash → Auth → Dashboard
         // ==========================================
-        window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
+    if(document.querySelector('#theme-icon')) {
+        document.querySelector('#theme-icon').textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+    }
+
+    // Pre-load services in background
+    // Pre-load services and wallet
+    loadServices();
+    loadWallet();
+
+    
+    setTimeout(() => {
+        const splash = document.getElementById('view-splash');
+        splash.style.opacity = '0';
+        setTimeout(() => {
+            splash.classList.add('hide');
             switchTab('home');
-            if(document.querySelector('#theme-icon')) {
-                document.querySelector('#theme-icon').textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
-            }
-
-            // Pre-load services in background
-            // Pre-load services and wallet
-            loadServices();
-            loadWallet();
-
-            
-            setTimeout(() => {
-                const splash = document.getElementById('view-splash');
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.classList.add('hide');
-                    document.getElementById('view-register').classList.remove('hide');
-                }, 700);
-            }, 2500);
-        });
+        }, 700);
+    }, 2500);
+});
 
         function toggleAuthView(target) {
             if (target === 'login') {
