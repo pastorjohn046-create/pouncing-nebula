@@ -135,36 +135,68 @@ async function writeWallet(data) {
 }
 
 async function readUsers() {
-    const { data, error } = await supabase
-        .from('users')
-        .select('*');
-    
-    if (error) {
-        initUsers();
-        return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
+    // Try Supabase first
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*');
+            
+            if (!error && data) {
+                console.log(`✅ Loaded ${data.length} users from Supabase`);
+                return data;
+            }
+            console.error('❌ Supabase readUsers error:', error?.message);
+        } catch (err) {
+            console.error('❌ Supabase readUsers exception:', err.message);
+        }
     }
     
-    return data;
+    // Fallback to local file
+    console.log('📁 Falling back to local users.json');
+    initUsers();
+    try {
+        return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
+    } catch (err) {
+        console.error('❌ Failed to read local users file:', err.message);
+        return [];
+    }
 }
 
 async function writeUsers(data) {
-    for (const user of data) {
-        await supabase
-            .from('users')
-            .upsert({
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                password_hash: user.passwordHash,
-                referral_code: user.referralCode,
-                referred_by: user.referredBy,
-                referrals: user.referrals,
-                vip_level: user.vipLevel,
-                created_at: user.createdAt
-            });
+    // Try Supabase first
+    if (supabase) {
+        try {
+            for (const user of data) {
+                const { error } = await supabase
+                    .from('users')
+                    .upsert({
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        password_hash: user.passwordHash,
+                        referral_code: user.referralCode,
+                        referred_by: user.referredBy,
+                        referrals: user.referrals,
+                        vip_level: user.vipLevel,
+                        created_at: user.createdAt
+                    });
+                if (error) {
+                    console.error('❌ Supabase writeUser error:', error.message);
+                }
+            }
+            console.log(`✅ Synced ${data.length} users to Supabase`);
+        } catch (err) {
+            console.error('❌ Supabase writeUsers exception:', err.message);
+        }
     }
     
-    fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
+    // Always write to local file as backup
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error('❌ Failed to write local users file:', err.message);
+    }
 }
 
 async function readOrders() {
@@ -765,7 +797,7 @@ function sendJSON(res, statusCode, data) {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     });
     res.end(JSON.stringify(data));
 }
@@ -851,6 +883,40 @@ const server = http.createServer(async (req, res) => {
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         });
         return res.end();
+    }
+
+    // ---- API: Health Check ----
+    if (pathname === '/api/health' && req.method === 'GET') {
+        const health = {
+            status: 'ok',
+            supabase: { configured: false, connected: false },
+            timestamp: new Date().toISOString()
+        };
+        
+        // Check if Supabase is configured
+        if (supabase) {
+            health.supabase.configured = true;
+            
+            // Try a simple query to test connection
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('count', { count: 'exact', head: true });
+                
+                if (!error) {
+                    health.supabase.connected = true;
+                    health.supabase.message = 'Successfully connected to Supabase';
+                } else {
+                    health.supabase.message = `Connection test failed: ${error.message}`;
+                }
+            } catch (err) {
+                health.supabase.message = `Exception: ${err.message}`;
+            }
+        } else {
+            health.supabase.message = 'Supabase client not initialized';
+        }
+        
+        return sendJSON(res, 200, health);
     }
 
     // ---- API: Get Services (with 2.5x markup) ----
@@ -1220,7 +1286,12 @@ const server = http.createServer(async (req, res) => {
             
             // Initialize user wallet
             const wallet = { balance: 0, totalFunded: 0, totalSpent: 0, transactions: [] };
-            fs.writeFileSync(path.join(__dirname, `wallet_${newUser.id}.json`), JSON.stringify(wallet, null, 2));
+            try {
+                fs.writeFileSync(path.join(__dirname, `wallet_${newUser.id}.json`), JSON.stringify(wallet, null, 2));
+                console.log(`✅ Created wallet for user ${newUser.id}`);
+            } catch (err) {
+                console.error('❌ Failed to create wallet file:', err.message);
+            }
             
             return sendJSON(res, 200, { 
                 success: true, 
@@ -1229,7 +1300,7 @@ const server = http.createServer(async (req, res) => {
             });
         } catch (err) {
             console.error('Register error:', err.message);
-            return sendJSON(res, 500, { success: false, error: 'Registration failed' });
+            return sendJSON(res, 500, { success: false, error: 'Registration failed: ' + err.message });
         }
     }
 
@@ -1253,7 +1324,7 @@ const server = http.createServer(async (req, res) => {
             });
         } catch (err) {
             console.error('Login error:', err.message);
-            return sendJSON(res, 500, { success: false, error: 'Login failed' });
+            return sendJSON(res, 500, { success: false, error: 'Login failed: ' + err.message });
         }
     }
 
