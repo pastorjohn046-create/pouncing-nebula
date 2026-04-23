@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: smm-elite
+    runtime: node
+    repo: https://github.com/pastorjohn046-create/boost
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: SUPABASE_URL
+        value: https://onzarfpadpfctwgtkhhi.supabase.co
+      - key: PEYFLEX_API_KEY
+        value: 47e65c11df8bd00b51598b914a0f3032aedb19ce
+      - key: NODE_ENV
+        value: production
