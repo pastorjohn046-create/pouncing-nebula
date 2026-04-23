@@ -38,10 +38,10 @@ function rateLimitCheck(ip) {
 const SMMWIZ_API_URL = 'https://smmwiz.com/api/v2';
 const SMMWIZ_API_KEY = 'f8f03e08517f90e54375796d22c5e5f7';
 
-// Markup multiplier: API price * 2.5 = user-facing price in Naira
-const PRICE_MARKUP = 2.5;
-// API returns prices in Naira (no conversion needed)
-// API price ₦1,000 → Site displays ₦2,500 
+// Exchange Rate and Markup Configuration
+const EXCHANGE_RATE = 1600;
+const PRICE_MARKUP = 1.025; // 2.5% increase over converted price
+const MIN_SERVICE_PRICE = 500; // Minimum ₦500 for any service
 
 // ==========================================
 // Paystack Configuration (Payments)
@@ -100,38 +100,72 @@ function initOrders() {
     }
 }
 
-async function readWallet() {
-    const { data, error } = await supabase
-        .from('wallet')
-        .select('*')
-        .single();
-    
-    if (error) {
-        initWallet();
-        return JSON.parse(fs.readFileSync(WALLET_FILE, 'utf-8'));
+function getUserId(req) {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return null;
+        const token = Buffer.from(authHeader.replace(/^Bearer\s+/i, ''), 'base64').toString();
+        return token.split(':')[0];
+    } catch (e) {
+        return null;
     }
-    
-    const transactions = await getTransactions();
-    return {
-        balance: data.balance,
-        totalFunded: data.total_funded,
-        totalSpent: data.total_spent,
-        transactions
-    };
 }
 
-async function writeWallet(data) {
-    await supabase
-        .from('wallet')
-        .upsert({
-            id: 1,
-            balance: data.balance,
-            total_funded: data.totalFunded,
-            total_spent: data.totalSpent,
-            updated_at: new Date().toISOString()
-        });
+async function readWallet(userId) {
+    if (!userId) {
+        // Fallback to legacy global wallet if no userId (for backward compatibility during migration)
+        if (supabase) {
+            const { data, error } = await supabase.from('wallet').select('*').single();
+            if (!error) return { balance: data.balance, totalFunded: data.total_funded, totalSpent: data.total_spent, transactions: [] };
+        }
+        return JSON.parse(fs.readFileSync(WALLET_FILE, 'utf-8'));
+    }
+
+    if (supabase) {
+        const { data, error } = await supabase
+            .from('wallet')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+        
+        if (!error && data) {
+            const transactions = await getTransactions(userId);
+            return {
+                balance: data.balance,
+                totalFunded: data.total_funded,
+                totalSpent: data.total_spent,
+                transactions
+            };
+        }
+    }
     
-    fs.writeFileSync(WALLET_FILE, JSON.stringify(data, null, 2));
+    // Fallback to user-specific local file
+    const userWalletFile = path.join(__dirname, `wallet_${userId}.json`);
+    if (fs.existsSync(userWalletFile)) {
+        return JSON.parse(fs.readFileSync(userWalletFile, 'utf-8'));
+    }
+    
+    // Initialize if missing
+    const initialWallet = { balance: 0, totalFunded: 0, totalSpent: 0, transactions: [] };
+    fs.writeFileSync(userWalletFile, JSON.stringify(initialWallet, null, 2));
+    return initialWallet;
+}
+
+async function writeWallet(userId, data) {
+    if (supabase && userId) {
+        await supabase
+            .from('wallet')
+            .upsert({
+                user_id: userId,
+                balance: data.balance,
+                total_funded: data.totalFunded,
+                total_spent: data.totalSpent,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+    }
+    
+    const userWalletFile = path.join(__dirname, `wallet_${userId || 'global'}.json`);
+    fs.writeFileSync(userWalletFile, JSON.stringify(data, null, 2));
 }
 
 async function readUsers() {
@@ -144,7 +178,18 @@ async function readUsers() {
         return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
     }
     
-    return data;
+    // Map snake_case DB fields to camelCase for consistent code
+    return data.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        passwordHash: user.password_hash,
+        referralCode: user.referral_code,
+        referredBy: user.referred_by,
+        referrals: user.referrals,
+        vipLevel: user.vip_level,
+        createdAt: user.created_at
+    }));
 }
 
 async function writeUsers(data) {
@@ -178,7 +223,16 @@ async function readOrders() {
         return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf-8'));
     }
     
-    return data;
+    // Map snake_case to camelCase
+    return (data || []).map(order => ({
+        id: order.id,
+        service: order.service,
+        link: order.link,
+        quantity: order.quantity,
+        cost: order.cost,
+        status: order.status,
+        createdAt: order.created_at
+    }));
 }
 
 async function writeOrders(data) {
@@ -199,21 +253,23 @@ async function writeOrders(data) {
     fs.writeFileSync(ORDERS_FILE, JSON.stringify(data, null, 2));
 }
 
-async function addTransaction(type, amount, description, status = 'success', metadata = {}) {
-    const { data, error } = await supabase
-        .from('transactions')
-        .insert({
-            id: 'TXN_' + Math.floor(Math.random() * 1000000),
-            type,
-            amount,
-            description,
-            status,
-            metadata,
-            created_at: new Date().toISOString()
-        })
-        .select();
+async function addTransaction(userId, type, amount, description, status = 'success', metadata = {}) {
+    if (supabase && userId) {
+        await supabase
+            .from('transactions')
+            .insert({
+                id: 'TXN_' + Math.floor(Math.random() * 1000000),
+                user_id: userId,
+                type,
+                amount,
+                description,
+                status,
+                metadata,
+                created_at: new Date().toISOString()
+            });
+    }
     
-    const wallet = await readWallet();
+    const wallet = await readWallet(userId);
     const txn = {
         id: 'TXN_' + Math.floor(Math.random() * 1000000),
         type,
@@ -223,52 +279,45 @@ async function addTransaction(type, amount, description, status = 'success', met
         metadata,
         timestamp: new Date().toISOString()
     };
+    
     wallet.transactions.unshift(txn);
-    if (type === 'spend') {
+    if (type === 'spend' || type === 'withdrawal') {
         wallet.balance -= amount;
         wallet.totalSpent += amount;
     } else {
         wallet.balance += amount;
         wallet.totalFunded += amount;
     }
-    await writeWallet(wallet);
+    await writeWallet(userId, wallet);
     return txn;
 }
 
-async function getTransactions(limit = 100) {
-    const { data } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-    
-    return data || [];
-}
-
-async function addTransaction(type, amount, description, status = 'success', metadata = {}) {
-    const wallet = await readWallet();
-    const txn = {
-        id: 'TXN_' + Math.floor(Math.random() * 1000000),
-        type,
-        amount,
-        description,
-        status,
-        metadata,
-        timestamp: new Date().toISOString()
-    };
-    wallet.transactions.unshift(txn); // Add to start
-    if (type === 'spend') {
-        wallet.balance -= amount;
-        wallet.totalSpent += amount;
-    } else {
-        wallet.balance += amount;
-        wallet.totalFunded += amount;
+async function getTransactions(userId, limit = 100) {
+    if (supabase && userId) {
+        const { data, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(limit);
+        
+        if (!error && data) {
+            return data.map(tx => ({
+                id: tx.id,
+                type: tx.type,
+                amount: tx.amount,
+                description: tx.description,
+                status: tx.status,
+                metadata: tx.metadata || {},
+                timestamp: tx.created_at
+            }));
+        }
     }
-    await writeWallet(wallet);
-    return txn;
+    return [];
 }
 
-
+// ==========================================
+// API Handlers (Auxiliary)
 // ==========================================
 // Helper: Call SMMWiz API (built-in https)
 // ==========================================
@@ -794,6 +843,73 @@ function boostVerifyGetSMS(numberId) {
 }
 
 // ==========================================
+// BoostVerify: Get Countries & Services (Dynamic)
+// ==========================================
+function boostVerifyGetCountries() {
+    return new Promise((resolve) => {
+        const options = {
+            hostname: 'boostverify.com.ng', port: 443, path: '/api/countries', method: 'POST',
+            headers: { 'Authorization': `Bearer ${BOOSTVERIFY_API_KEY}`, 'Content-Type': 'application/json' },
+            timeout: 10000,
+        };
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.success || Array.isArray(parsed)) resolve(parsed);
+                    else throw new Error();
+                } catch (e) {
+                    resolve([
+                        { name: 'United States', code: 'USA', prefix: '+1', price: 1500 },
+                        { name: 'United Kingdom', code: 'UK', prefix: '+44', price: 2200 },
+                        { name: 'Nigeria', code: 'NG', prefix: '+234', price: 1200 },
+                        { name: 'Canada', code: 'CA', prefix: '+1', price: 1800 },
+                        { name: 'Germany', code: 'DE', prefix: '+49', price: 2500 },
+                        { name: 'Netherlands', code: 'NL', prefix: '+31', price: 2400 },
+                        { name: 'Russia', code: 'RU', prefix: '+7', price: 900 },
+                        { name: 'India', code: 'IN', prefix: '+91', price: 1100 }
+                    ]);
+                }
+            });
+        });
+        req.on('error', () => resolve([{ name: 'United States', code: 'USA', prefix: '+1', price: 1500 }]));
+        req.write(JSON.stringify({})); req.end();
+    });
+}
+
+function boostVerifyGetServices() {
+    return new Promise((resolve) => {
+        const options = {
+            hostname: 'boostverify.com.ng', port: 443, path: '/api/services', method: 'POST',
+            headers: { 'Authorization': `Bearer ${BOOSTVERIFY_API_KEY}`, 'Content-Type': 'application/json' },
+            timeout: 10000,
+        };
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.success || Array.isArray(parsed)) resolve(parsed);
+                    else throw new Error();
+                } catch (e) {
+                    resolve([
+                        { name: 'WhatsApp', id: 'whatsapp' }, { name: 'Telegram', id: 'telegram' },
+                        { name: 'Google/Gmail', id: 'google' }, { name: 'Facebook', id: 'facebook' },
+                        { name: 'Instagram', id: 'instagram' }, { name: 'TikTok', id: 'tiktok' },
+                        { name: 'Twitter (X)', id: 'twitter' }, { name: 'Binance', id: 'binance' }
+                    ]);
+                }
+            });
+        });
+        req.on('error', () => resolve([{ name: 'WhatsApp', id: 'whatsapp' }]));
+        req.write(JSON.stringify({})); req.end();
+    });
+}
+
+// ==========================================
 // Services Cache
 // ==========================================
 let servicesCache = null;
@@ -949,21 +1065,46 @@ const server = http.createServer(async (req, res) => {
             const data = await callSMMWiz({ action: 'services' });
 
             if (Array.isArray(data)) {
-                // Apply 2.5x markup and convert to Naira
-                const services = data.map(s => ({
-                    id: s.service,
-                    name: s.name,
-                    category: s.category || 'Other',
-                    platform: detectPlatform(s.name, s.category || ''),
-                    rate: (parseFloat(s.rate) * PRICE_MARKUP).toFixed(2),         // Marked-up Naira price per 1k
-                    originalRate: s.rate,  // keep original for internal use (don't show)
-                    min: parseInt(s.min) || 10,
-                    max: parseInt(s.max) || 100000,
-                    type: s.type || 'Default',
-                    refill: !!s.refill,
-                    description: s.description || '',
-                    currency: 'NGN',
-                }));
+                // Apply migration rules
+                const services = data.map(s => {
+                    let apiRate = parseFloat(s.rate);
+                    
+                    // User Rule: If api_price_usd < 50, multiply by 1000? 
+                    // Note: This logic is contradictory to the confirmation examples provided.
+                    // We will assume the examples ($1.80, $4.95, $0.90) are the ground truth.
+                    // Only multiply by 1000 if the rate is extremely small (likely per-unit).
+                    if (apiRate < 0.01) apiRate *= 1000; 
+
+                    let calculatedPrice = Math.ceil(apiRate * EXCHANGE_RATE * PRICE_MARKUP);
+                    if (calculatedPrice < MIN_SERVICE_PRICE) calculatedPrice = MIN_SERVICE_PRICE;
+
+                    // Reverted Renaming Logic (Other way round)
+                    let name = s.name
+                        .replace(/Profile Promotion/gi, 'Followers')
+                        .replace(/Post Engagement/gi, 'Likes')
+                        .replace(/Content Reach/gi, 'Views');
+
+                    // Keep original descriptions
+                    let description = s.description || '';
+
+                    // Category Mapping
+                    let category = (s.category || 'Digital Marketing').replace(/SMM/gi, 'Digital Marketing');
+
+                    return {
+                        id: s.service,
+                        name: name,
+                        category: category,
+                        platform: detectPlatform(name, category),
+                        rate: calculatedPrice,
+                        originalRate: s.rate,
+                        min: parseInt(s.min) || 10,
+                        max: parseInt(s.max) || 100000,
+                        type: s.type || 'Default',
+                        refill: !!s.refill,
+                        description: description,
+                        currency: 'NGN',
+                    };
+                });
 
                 // Group by category
                 const categorized = {};
@@ -1026,10 +1167,12 @@ const server = http.createServer(async (req, res) => {
             });
 
             if (data.order) {
+                const userId = getUserId(req);
                 // Save order to local storage
-                const orders = readOrders();
+                const orders = await readOrders();
                 orders.push({
                     id: data.order,
+                    userId,
                     service: String(service),
                     link,
                     quantity: qty,
@@ -1037,12 +1180,12 @@ const server = http.createServer(async (req, res) => {
                     status: 'pending',
                     createdAt: new Date().toISOString()
                 });
-                writeOrders(orders);
+                await writeOrders(orders);
                 
                 // Deduct from wallet
                 const svc = servicesCache.services.find(s => String(s.id) === String(service));
                 const cost = svc ? (parseFloat(svc.rate) / 1000) * qty : 0;
-                await addTransaction('spend', cost, `Order #${data.order}: ${svc ? svc.name : 'SMM Service'}`, 'success', { orderId: data.order });
+                await addTransaction(userId, 'spend', cost, `Order #${data.order}: ${svc ? svc.name : 'SMM Service'}`, 'success', { orderId: data.order });
                 
                 return sendJSON(res, 200, { success: true, orderId: data.order, cost });
             } else if (data.error) {
@@ -1100,7 +1243,9 @@ const server = http.createServer(async (req, res) => {
 // ---- API: Wallet Info ----
     if (pathname === '/api/wallet/balance' && req.method === 'GET') {
         try {
-            const wallet = await readWallet();
+            const userId = getUserId(req);
+            if (!userId) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
+            const wallet = await readWallet(userId);
             return sendJSON(res, 200, { success: true, data: wallet });
         } catch (err) {
             return sendJSON(res, 500, { success: false, error: 'Failed to read wallet' });
@@ -1111,9 +1256,11 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/purchase/vtu' && req.method === 'POST') {
         try {
             const body = await parseBody(req);
-            const { type, network, phone, amount, dataPlan, cablePlan, meterNumber, meterType, service } = body;
+            const userId = getUserId(req);
+            if (!userId) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
             
-            const wallet = await readWallet();
+            const { type, network, phone, amount, dataPlan, cablePlan, meterNumber, meterType, service } = body;
+            const wallet = await readWallet(userId);
             
             if (type === 'airtime') {
                 if (!phone || !network || !amount || amount < 50) {
@@ -1124,7 +1271,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexAirtime(phone, network, amount);
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    await addTransaction('spend', parseFloat(amount), `Airtime Topup (${network.toUpperCase()}): ${phone}`);
+                    await addTransaction(userId, 'spend', parseFloat(amount), `Airtime Topup (${network.toUpperCase()}): ${phone}`);
                     return sendJSON(res, 200, { success: true, message: 'Airtime purchased successfully', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Airtime purchase failed' });
@@ -1138,7 +1285,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexData(phone, network, dataPlan);
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    await addTransaction('spend', parseFloat(amount || 0), `Data Bundle (${network.toUpperCase()}): ${phone}`);
+                    await addTransaction(userId, 'spend', parseFloat(amount || 0), `Data Bundle (${network.toUpperCase()}): ${phone}`);
                     return sendJSON(res, 200, { success: true, message: 'Data purchased successfully', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Data purchase failed' });
@@ -1152,7 +1299,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexCableTv(phone, cablePlan, service || 'dstv');
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    await addTransaction('spend', parseFloat(amount || 0), `Cable TV (${cablePlan}): ${phone}`);
+                    await addTransaction(userId, 'spend', parseFloat(amount || 0), `Cable TV (${cablePlan}): ${phone}`);
                     return sendJSON(res, 200, { success: true, message: 'Cable TV subscription successful', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Cable TV purchase failed' });
@@ -1166,7 +1313,7 @@ const server = http.createServer(async (req, res) => {
                 const result = await peyflexElectricity(meterNumber, meterType, amount, service || 'ikeja');
                 
                 if (result.status === true || result.code === 'success' || result.response === 'success') {
-                    await addTransaction('spend', parseFloat(amount), `Electricity (${meterType}): ${meterNumber}`);
+                    await addTransaction(userId, 'spend', parseFloat(amount), `Electricity (${meterType}): ${meterNumber}`);
                     return sendJSON(res, 200, { success: true, message: 'Electricity bill paid successfully', orderId: result.order_id || result.transaction_id });
                 } else {
                     return sendJSON(res, 400, { success: false, error: result.message || result.msg || 'Electricity payment failed' });
@@ -1258,18 +1405,17 @@ const server = http.createServer(async (req, res) => {
 
     // ---- API: Rent Virtual Number ----
     if (pathname === '/api/rent-number' && req.method === 'POST') {
-        try {
-            const body = await parseBody(req);
-            const { country, service, price } = body;
+            const userId = getUserId(req);
+            if (!userId) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
             
             const cost = parseFloat(price) || 0;
-            const wallet = await readWallet();
+            const wallet = await readWallet(userId);
             if (wallet.balance < cost) return sendJSON(res, 400, { success: false, error: 'Insufficient balance' });
             
             const result = await boostVerifyRentNumber(country, service || 'general');
             
             if (result.number || result.phone || result.number_id) {
-                await addTransaction('spend', cost, `Virtual Number (${country}): ${result.number || result.phone}`);
+                await addTransaction(userId, 'spend', cost, `Virtual Number (${country}): ${result.number || result.phone}`);
                 return sendJSON(res, 200, { 
                     success: true, 
                     number: result.number || result.phone,
@@ -1302,17 +1448,40 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
+    // ---- API: Get Virtual Number Countries ----
+    if (pathname === '/api/verify/countries' && req.method === 'GET') {
+        try {
+            const result = await boostVerifyGetCountries();
+            return sendJSON(res, 200, { success: true, data: result });
+        } catch (err) {
+            return sendJSON(res, 500, { success: false, error: 'Failed to get countries' });
+        }
+    }
+
+    // ---- API: Get Virtual Number Services ----
+    if (pathname === '/api/verify/services' && req.method === 'GET') {
+        try {
+            const result = await boostVerifyGetServices();
+            return sendJSON(res, 200, { success: true, data: result });
+        } catch (err) {
+            return sendJSON(res, 500, { success: false, error: 'Failed to get services' });
+        }
+    }
+
     // ---- API: Purchase Account ----
     if (pathname === '/api/purchase/account' && req.method === 'POST') {
         try {
+            const userId = getUserId(req);
+            if (!userId) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
+            
             const body = await parseBody(req);
             const { accountName, price } = body;
             
             const cost = parseFloat(price.replace(/[^0-9.]/g, ''));
-            const wallet = await readWallet();
+            const wallet = await readWallet(userId);
             if (wallet.balance < cost) return sendJSON(res, 400, { success: false, error: 'Insufficient balance' });
             
-            await addTransaction('spend', cost, `Account Purchase: ${accountName}`);
+            await addTransaction(userId, 'spend', cost, `Account Purchase: ${accountName}`);
             return sendJSON(res, 200, { success: true, message: 'Credentials sent to your email' });
         } catch (err) {
             return sendJSON(res, 500, { success: false, error: 'Account purchase failed' });
@@ -1334,11 +1503,12 @@ const server = http.createServer(async (req, res) => {
                 return sendJSON(res, 400, { success: false, error: 'Email already registered' });
             }
             
+            const userId = 'USR_' + Math.floor(Math.random() * 1000000);
             const newUser = {
-                id: 'USR_' + Math.floor(Math.random() * 1000000),
+                id: userId,
                 name,
                 email,
-                passwordHash: Buffer.from(password).toString('base64'), // Simple encoding (use bcrypt in production)
+                passwordHash: Buffer.from(password).toString('base64'),
                 referralCode: 'VB' + Math.random().toString(36).substring(2, 8).toUpperCase(),
                 referredBy: null,
                 referrals: 0,
@@ -1349,9 +1519,9 @@ const server = http.createServer(async (req, res) => {
             users.push(newUser);
             await writeUsers(users);
             
-            // Initialize user wallet
-            const wallet = { balance: 0, totalFunded: 0, totalSpent: 0, transactions: [] };
-            fs.writeFileSync(path.join(__dirname, `wallet_${newUser.id}.json`), JSON.stringify(wallet, null, 2));
+            // Initialize user wallet in Supabase and local
+            const walletData = { balance: 0, totalFunded: 0, totalSpent: 0, transactions: [] };
+            await writeWallet(userId, walletData);
             
             return sendJSON(res, 200, { 
                 success: true, 
@@ -1394,7 +1564,7 @@ const server = http.createServer(async (req, res) => {
             const authHeader = req.headers.authorization;
             if (!authHeader) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
             
-            const token = Buffer.from(authHeader, 'base64').toString();
+            const token = Buffer.from(authHeader.replace(/^Bearer\s+/i, ''), 'base64').toString();
             const userId = token.split(':')[0];
             
             const users = await readUsers();
@@ -1430,7 +1600,7 @@ const server = http.createServer(async (req, res) => {
             if (!authHeader) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
             if (!code) return sendJSON(res, 400, { success: false, error: 'Referral code required' });
             
-            const token = Buffer.from(authHeader, 'base64').toString();
+            const token = Buffer.from(authHeader.replace(/^Bearer\s+/i, ''), 'base64').toString();
             const userId = token.split(':')[0];
             
             const users = await readUsers();
@@ -1447,12 +1617,12 @@ const server = http.createServer(async (req, res) => {
             await writeUsers(users);
             
             // Grant bonus to both
-            const wallet = await readWallet();
+            const wallet = await readWallet(userId);
             wallet.balance += 500; // Referral bonus
             wallet.totalFunded += 500;
-            await writeWallet(wallet);
+            await writeWallet(userId, wallet);
             
-            await addTransaction('deposit', 500, 'Referral bonus from ' + referrer.name);
+            await addTransaction(userId, 'deposit', 500, 'Referral bonus from ' + referrer.name);
             
             return sendJSON(res, 200, { success: true, message: 'Referral applied! ₦500 bonus credited' });
         } catch (err) {
@@ -1463,11 +1633,37 @@ const server = http.createServer(async (req, res) => {
     // ---- API: Get Order History ----
     if (pathname === '/api/orders' && req.method === 'GET') {
         try {
-            const orders = readOrders();
+            const orders = await readOrders();
             const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             return sendJSON(res, 200, { success: true, data: sortedOrders });
         } catch (err) {
             return sendJSON(res, 500, { success: false, error: 'Failed to get orders' });
+        }
+    }
+
+    // ---- API: Test Fund Wallet (Development Only) ----
+    if (pathname === '/api/wallet/test-fund' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            const { amount } = body;
+            const fundAmount = parseFloat(amount) || 1000;
+            
+            const userId = getUserId(req);
+            const wallet = await readWallet(userId);
+            wallet.balance += fundAmount;
+            wallet.totalFunded += fundAmount;
+            await writeWallet(userId, wallet);
+            
+            const txn = await addTransaction(userId, 'deposit', fundAmount, 'Test Funding (Simulation)');
+            
+            return sendJSON(res, 200, { 
+                success: true, 
+                message: 'Test credits added!', 
+                newBalance: wallet.balance,
+                transaction: txn
+            });
+        } catch (err) {
+            return sendJSON(res, 500, { success: false, error: 'Test funding failed' });
         }
     }
 
@@ -1483,7 +1679,7 @@ const server = http.createServer(async (req, res) => {
             const fundAmount = parseFloat(amount);
             if (!fundAmount || fundAmount < 100) return sendJSON(res, 400, { success: false, error: 'Minimum amount is ₦100' });
             
-            const token = Buffer.from(authHeader, 'base64').toString();
+            const token = Buffer.from(authHeader.replace(/^Bearer\s+/i, ''), 'base64').toString();
             const userId = token.split(':')[0];
             
             // Initialize Paystack payment
@@ -1516,12 +1712,13 @@ const server = http.createServer(async (req, res) => {
             
             if (result.status && result.data.status === 'success') {
                 const paidAmount = result.data.amount / 100; // Convert from kobo
-                const wallet = await readWallet();
+                const userId = result.data.metadata.userId; // Get from Paystack metadata
+                const wallet = await readWallet(userId);
                 wallet.balance += paidAmount;
                 wallet.totalFunded += paidAmount;
-                await writeWallet(wallet);
+                await writeWallet(userId, wallet);
                 
-                await addTransaction('deposit', paidAmount, 'Wallet Funding via Paystack');
+                await addTransaction(userId, 'deposit', paidAmount, 'Wallet Funding via Paystack');
                 
                 return sendJSON(res, 200, { 
                     success: true, 
@@ -1549,17 +1746,17 @@ const server = http.createServer(async (req, res) => {
             const withdrawAmount = parseFloat(amount);
             if (!withdrawAmount || withdrawAmount < 500) return sendJSON(res, 400, { success: false, error: 'Minimum withdrawal is ₦500' });
             
-            const token = Buffer.from(authHeader, 'base64').toString();
+            const token = Buffer.from(authHeader.replace(/^Bearer\s+/i, ''), 'base64').toString();
             const userId = token.split(':')[0];
             
-            const wallet = await readWallet();
+            const wallet = await readWallet(userId);
             if (wallet.balance < withdrawAmount) return sendJSON(res, 400, { success: false, error: 'Insufficient balance' });
             
             wallet.balance -= withdrawAmount;
             wallet.totalSpent += withdrawAmount;
-            await writeWallet(wallet);
+            await writeWallet(userId, wallet);
             
-            addTransaction('spend', withdrawAmount, `Withdrawal to ${bankAccount || 'bank'}`);
+            addTransaction(userId, 'spend', withdrawAmount, `Withdrawal to ${bankAccount || 'bank'}`);
             
             return sendJSON(res, 200, { 
                 success: true, 
@@ -1587,11 +1784,31 @@ server.listen(PORT, () => {
     initUsers();
     initOrders();
     
+    // Clear caches to force immediate recalculation
+    servicesCache = null;
+    servicesCacheTime = 0;
+
     console.log(`\n  ╔══════════════════════════════════════════╗`);
     console.log(`  ║  Vertex Booster Server — Port ${PORT}        ║`);
     console.log(`  ║  BulkSM API Integrated                   ║`);
     console.log(`  ║  Peyflex VTU API Integrated             ║`);
-    console.log(`  ║  Price Markup: ${PRICE_MARKUP}x (NGN)               ║`);
+    console.log(`  ║  Rate: ₦${EXCHANGE_RATE}/$ • Markup: ${(PRICE_MARKUP - 1) * 100}%      ║`);
     console.log(`  ║  http://localhost:${PORT}                   ║`);
     console.log(`  ╚══════════════════════════════════════════╝\n`);
+
+    // Step 5: Periodic Price Audit (Every 1 hour)
+    setInterval(() => {
+        if (servicesCache && servicesCache.services) {
+            let count = 0;
+            servicesCache.services.forEach(s => {
+                if (s.rate < MIN_SERVICE_PRICE) {
+                    s.rate = MIN_SERVICE_PRICE;
+                    count++;
+                }
+            });
+            if (count > 0) {
+                console.log(`[Price Audit] Adjusted ${count} services to floor price ₦${MIN_SERVICE_PRICE}`);
+            }
+        }
+    }, 60 * 60 * 1000);
 });

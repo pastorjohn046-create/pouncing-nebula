@@ -246,8 +246,23 @@
             background: inherit;
             animation: livePulse 2s ease-in-out infinite;
         }
+        /* ========== GRAINY TEXTURE ========== */
+        .grainy {
+            position: relative;
+        }
+        .grainy::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .dark .grainy::before { opacity: 0.05; }
     </style>
 
+    <script src="/confetti.js"></script>
 </head>
 <body class="text-onSurface bg-background dark:bg-black antialiased flex justify-center items-center h-screen w-full overflow-hidden transition-colors">
 
@@ -366,7 +381,7 @@
                 <div class="md:grid md:grid-cols-2 md:gap-8 mt-4">
                     <div class="space-y-7">
                         <!-- Balance Card -->
-                <div class="bg-gradient-to-br from-primary via-purple-600 to-indigo-600 rounded-[24px] p-6 text-white pulse-glow relative overflow-hidden shimmer-card">
+                <div class="bg-gradient-to-br from-primary via-purple-600 to-indigo-600 rounded-[24px] p-6 text-white pulse-glow relative overflow-hidden shimmer-card grainy">
                     <!-- Animated floating orbs -->
                     <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10 float-orb-1"></div>
                     <div class="absolute bottom-0 left-0 w-24 h-24 bg-pink-400 opacity-15 rounded-full blur-xl -ml-6 -mb-6 float-orb-2"></div>
@@ -598,43 +613,30 @@
                 </div>
 
                 <!-- Virtual Numbers Tab -->
-                <div id="content-numbers" class="grid grid-cols-1 md:grid-cols-2 gap-4 hide pb-4">
-                    <div class="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 flex flex-col gap-4">
-                        <div class="flex items-start justify-between">
-                            <div class="flex gap-3">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-                                    <span class="material-symbols-outlined text-[26px]">public</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-[14px] leading-snug text-gray-900">USA Virtual Number (+1)</h4>
-                                    <p class="text-[11px] text-gray-500 mt-1 font-medium">OTP/SMS Verification Ready</p>
-                                </div>
-                            </div>
-                            <span class="font-extrabold text-primary text-lg">₦1,500</span>
+                <div id="content-numbers" class="space-y-6 hide pb-4 w-full">
+                    <!-- Search & Filter Bar -->
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">public</span>
+                            <input type="text" id="verify-country-search" placeholder="Search country..." oninput="filterVerifyNumbers()" class="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white font-medium">
                         </div>
-                        <div class="flex gap-2 pt-2 border-t border-gray-50/50">
-                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'account', '₦1,500', '15-minute rental for OTP verification.')">Rent 15m</button>
-                            <button class="bg-primary text-white font-bold text-[13px] py-3 px-4 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openBottomSheet('USA Virtual Number (+1)', 'account', '₦1,500', 'Permanent USA number. Instant delivery.')">Buy Permanent</button>
+                        <div class="relative md:w-64">
+                            <select id="verify-service-select" onchange="filterVerifyNumbers()" class="w-full px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white font-semibold appearance-none cursor-pointer">
+                                <option value="general">All Services</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] pointer-events-none">expand_more</span>
                         </div>
                     </div>
 
-                    <div class="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 flex flex-col gap-4">
-                        <div class="flex items-start justify-between">
-                            <div class="flex gap-3">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-                                    <span class="material-symbols-outlined text-[26px]">public</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-[14px] leading-snug text-gray-900">UK Virtual Number (+44)</h4>
-                                    <p class="text-[11px] text-gray-500 mt-1 font-medium">WhatsApp / Telegram Ready</p>
-                                </div>
-                            </div>
-                            <span class="font-extrabold text-primary text-lg">₦2,200</span>
-                        </div>
-                        <div class="flex gap-2 pt-2 border-t border-gray-50/50">
-                            <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-[13px] py-3 px-4 rounded-xl flex-[0.8] interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'account', '₦2,200', '15-minute rental for OTP verification.')">Rent 15m</button>
-                            <button class="bg-primary text-white font-bold text-[13px] py-3 px-4 rounded-xl flex-1 shadow-md shadow-primary/20 interactive-btn" onclick="openBottomSheet('UK Virtual Number (+44)', 'account', '₦2,200', 'Permanent UK number. Instant delivery.')">Buy Permanent</button>
-                        </div>
+                    <!-- Country Selection List -->
+                    <div id="verify-numbers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Dynamic items will be injected here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="verify-empty" class="hidden text-center py-12">
+                        <span class="material-symbols-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-3 block">search_off</span>
+                        <p class="text-gray-500 dark:text-gray-400 font-semibold text-sm">No countries match your search</p>
                     </div>
                 </div>
             </section>
@@ -818,6 +820,25 @@
                 
                 <div class="text-center pt-2 pb-6">
                     <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">Vertex Booster v2.1.0</p>
+                    <button onclick="simulateFunding()" class="mt-4 text-[9px] font-bold text-primary/40 hover:text-primary transition-colors uppercase tracking-widest">Dev: Simulate Funding +₦5,000</button>
+                </div>
+            </section>
+
+            <!-- ORDERS VIEW -->
+            <section id="view-orders" class="px-5 pb-6 space-y-6 hide w-full h-auto">
+                <div class="flex justify-between items-center px-1 pt-2">
+                    <h2 class="font-headline font-extrabold text-2xl tracking-tight">Order Tracking</h2>
+                    <button onclick="loadOrderHistory()" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 interactive-btn">
+                        <span class="material-symbols-outlined text-[20px]">refresh</span>
+                    </button>
+                </div>
+
+                <div id="orders-container" class="space-y-4 pb-4">
+                    <!-- Orders will be loaded here -->
+                    <div class="p-12 text-center">
+                        <span class="material-symbols-outlined text-[48px] text-gray-200 dark:text-gray-700 mb-3 block">history</span>
+                        <p class="text-gray-400 font-bold text-sm uppercase tracking-wider">No active orders</p>
+                    </div>
                 </div>
             </section>
 
@@ -842,6 +863,12 @@
                     <div class="nav-indicator w-[30px] h-1.5 bg-primary rounded-full mb-1 absolute -top-4 opacity-0 transition-all duration-300 transform scale-50"></div>
                     <span class="material-symbols-outlined nav-icon text-[28px] text-gray-400 transition-colors">account_balance_wallet</span>
                     <span class="text-[10px] font-bold text-gray-500 transition-colors tracking-wide">Wallet</span>
+                </button>
+
+                <button onclick="switchTab('orders')" id="nav-orders" class="flex flex-col items-center gap-1.5 interactive-btn w-[60px] relative">
+                    <div class="nav-indicator w-[30px] h-1.5 bg-primary rounded-full mb-1 absolute -top-4 opacity-0 transition-all duration-300 transform scale-50"></div>
+                    <span class="material-symbols-outlined nav-icon text-[28px] text-gray-400 transition-colors">history</span>
+                    <span class="text-[10px] font-bold text-gray-500 transition-colors tracking-wide">Orders</span>
                 </button>
 
                 <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1.5 interactive-btn w-[60px] relative">
@@ -926,6 +953,12 @@
             'SoundCloud': { icon: '', materialIcon: 'graphic_eq', color: 'from-orange-400 to-orange-600', bg: 'bg-orange-50', textColor: 'text-orange-500' },
             'Other': { icon: '', materialIcon: 'public', color: 'from-gray-400 to-gray-600', bg: 'bg-gray-50', textColor: 'text-gray-600' },
         };
+
+        // Virtual Number Data
+        let verifyCountries = [];
+        let verifyServices = [];
+        let currentRentedNumber = null;
+        let smsPollingInterval = null;
 
         // ==========================================
         // Format Naira
@@ -1397,18 +1430,27 @@
                 document.querySelector('#theme-icon').textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
             }
 
-            // Pre-load services in background
             // Pre-load services and wallet
             loadServices();
             loadWallet();
-
+            loadVerifyData();
             
+            // Check if user is already logged in
+            const existingToken = getToken();
+            if (existingToken) {
+                // Validate token in background
+                loadUser();
+            }
+
             setTimeout(() => {
                 const splash = document.getElementById('view-splash');
                 splash.style.opacity = '0';
                 setTimeout(() => {
                     splash.classList.add('hide');
-                    document.getElementById('view-register').classList.remove('hide');
+                    // Only show auth view if NOT logged in
+                    if (!existingToken) {
+                        document.getElementById('view-register').classList.remove('hide');
+                    }
                 }, 700);
             }, 2500);
         });
@@ -1608,6 +1650,7 @@
         // ==========================================
         // Tab Navigation
         // ==========================================
+        const views = ['home', 'services', 'wallet', 'profile', 'orders'];
         function switchTab(tabName) {
             views.forEach(v => {
                 const viewEl = document.getElementById(`view-${v}`);
@@ -1642,6 +1685,10 @@
             // Load services and wallet when navigating
             if (tabName === 'services' && !servicesLoaded) {
                 loadServices();
+                loadVerifyData();
+            }
+            if (tabName === 'orders') {
+                loadOrderHistory();
             }
             loadWallet();
 
@@ -1664,6 +1711,28 @@
             });
         }
         
+        // ==========================================
+        // Auth Helpers
+        // ==========================================
+        function getToken() {
+            return localStorage.getItem('vertex_token');
+        }
+        
+        function getUserData() {
+            const userStr = localStorage.getItem('vertex_user');
+            return userStr ? JSON.parse(userStr) : null;
+        }
+        
+        function getUserEmail() {
+            const user = getUserData();
+            return user ? user.email : 'user@example.com';
+        }
+        
+        function getUserId() {
+            const user = getUserData();
+            return user ? user.id : null;
+        }
+
         // ==========================================
         // Toast
         // ==========================================
@@ -1696,6 +1765,23 @@
             });
             el.classList.add('border-2', 'border-primary', 'bg-primary/5', 'text-primary');
             el.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-500');
+        }
+
+        async function loadUser() {
+            try {
+                const token = localStorage.getItem('vertex_token');
+                if (!token) return;
+                
+                const response = await fetch('/api/user/profile', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    // User profile loaded if needed
+                }
+            } catch (err) {
+                console.error('Failed to load user:', err);
+            }
         }
 
         async function loadWallet() {
@@ -1791,6 +1877,7 @@
                 if(result.success) {
                     closeBottomSheet();
                     showSuccessOverlay();
+                    if (window.triggerConfetti) window.triggerConfetti();
                     loadWallet();
                 } else {
                     showToast(result.error || 'Failed to process', 'error');
@@ -1860,6 +1947,7 @@
                 if(result.success) {
                     closeBottomSheet();
                     showSuccessOverlay();
+                    if (window.triggerConfetti) window.triggerConfetti();
                     loadWallet();
                 } else {
                     showToast(result.error || 'Failed to purchase', 'error');
@@ -1974,11 +2062,11 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        'Authorization': 'Bearer ' + getToken()
                     },
                     body: JSON.stringify({ 
                         amount: parseFloat(amount),
-                        email: localStorage.getItem('userEmail') || 'user@example.com'
+                        email: getUserEmail()
                     })
                 });
                 const result = await response.json();
@@ -2093,6 +2181,273 @@
                 showToast('Network error requesting refill', 'error');
                 btn.innerHTML = originalHTML;
                 btn.classList.remove('opacity-80', 'pointer-events-none');
+            }
+        }
+
+        // ==========================================
+        // Virtual Numbers Implementation
+        // ==========================================
+        async function loadVerifyData() {
+            try {
+                const [cRes, sRes] = await Promise.all([
+                    fetch('/api/verify/countries'),
+                    fetch('/api/verify/services')
+                ]);
+                const countries = await cRes.json();
+                const services = await sRes.json();
+                
+                if (countries.success) verifyCountries = countries.data;
+                else if (Array.isArray(countries)) verifyCountries = countries;
+                
+                if (services.success) verifyServices = services.data;
+                else if (Array.isArray(services)) verifyServices = services;
+
+                populateServiceDropdown();
+                renderVerifyCountries(verifyCountries);
+            } catch (err) {
+                console.error('Failed to load verification data:', err);
+            }
+        }
+
+        function populateServiceDropdown() {
+            const select = document.getElementById('verify-service-select');
+            if (!select) return;
+            const currentVal = select.value;
+            select.innerHTML = '<option value="general">All Services</option>';
+            verifyServices.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                select.appendChild(opt);
+            });
+            select.value = currentVal;
+        }
+
+        function filterVerifyNumbers() {
+            const countrySearch = document.getElementById('verify-country-search').value.toLowerCase();
+            const serviceId = document.getElementById('verify-service-select').value;
+            
+            const filtered = verifyCountries.filter(c => 
+                c.name.toLowerCase().includes(countrySearch) || 
+                c.code.toLowerCase().includes(countrySearch) ||
+                c.prefix.includes(countrySearch)
+            );
+            
+            renderVerifyCountries(filtered);
+        }
+
+        function renderVerifyCountries(countries) {
+            const container = document.getElementById('verify-numbers-grid');
+            const emptyEl = document.getElementById('verify-empty');
+            if (!container) return;
+            
+            if (countries.length === 0) {
+                container.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            
+            emptyEl.classList.add('hidden');
+            container.innerHTML = countries.map(c => `
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 card-hover grainy transition-colors">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold">
+                                ${getFlagEmoji(c.code)}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-[14px] dark:text-white">${c.name}</h4>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${c.prefix}</p>
+                            </div>
+                        </div>
+                        <span class="text-primary font-black text-sm">${formatNaira(c.price || 1500)}</span>
+                    </div>
+                    <button onclick="rentNumber('${c.code}', ${c.price || 1500})" class="w-full py-3 bg-primary text-white rounded-xl font-bold text-xs shadow-md shadow-primary/20 interactive-btn">Rent Number</button>
+                </div>
+            `).join('');
+        }
+
+        function getFlagEmoji(countryCode) {
+            if (!countryCode) return '🏳️';
+            if (countryCode === 'UK') countryCode = 'GB';
+            if (countryCode === 'USA') countryCode = 'US';
+            const codePoints = countryCode
+                .toUpperCase()
+                .split('')
+                .map(char => 127397 + char.charCodeAt());
+            return String.fromCodePoint(...codePoints);
+        }
+
+        async function rentNumber(country, price) {
+            const service = document.getElementById('verify-service-select').value;
+            const serviceName = verifyServices.find(s => s.id === service)?.name || 'General';
+            
+            showToast(`Renting ${serviceName} number for ${country}...`, 'info');
+            
+            try {
+                const response = await fetch('/api/rent-number', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ country, service, price })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentRentedNumber = result;
+                    openSMSInboxSheet(result);
+                    loadWallet();
+                } else {
+                    showToast(result.error || 'Failed to rent number', 'error');
+                }
+            } catch (err) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        function openSMSInboxSheet(numberData) {
+            openBottomSheet(`Number: ${numberData.number}`, 'sms-inbox', '', '');
+            const content = document.getElementById('sheet-content');
+            
+            content.innerHTML = `
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="font-headline font-extrabold text-2xl text-gray-900 dark:text-white">${numberData.number}</h3>
+                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest mt-1">Waiting for OTP / SMS...</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 animate-pulse">
+                        <span class="material-symbols-outlined icon-fill">sms</span>
+                    </div>
+                </div>
+
+                <div id="sms-container" class="space-y-4 mb-8">
+                    <div class="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[24px] border border-gray-100 dark:border-gray-700">
+                        <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                        <p class="text-[12px] text-gray-500 font-bold uppercase tracking-widest">Listening for SMS...</p>
+                        <p class="text-[10px] text-gray-400 mt-2">This may take up to 2 minutes. Do not close this window.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="copyToClipboard('${numberData.number}')" class="w-full bg-primary/10 text-primary font-bold py-4 rounded-2xl interactive-btn">Copy Number</button>
+                    <button onclick="stopSMSPolling(); closeBottomSheet();" class="w-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold py-4 rounded-2xl interactive-btn">Cancel & Close</button>
+                </div>
+            `;
+            
+            startSMSPolling(numberData.number_id);
+        }
+
+        function startSMSPolling(numberId) {
+            stopSMSPolling();
+            smsPollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/get-sms', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ number_id: numberId })
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success && result.data && result.data.sms) {
+                        displayReceivedSMS(result.data.sms);
+                        stopSMSPolling();
+                        showToast('OTP Received!', 'success');
+                    }
+                } catch (e) {}
+            }, 5000);
+        }
+
+        function stopSMSPolling() {
+            if (smsPollingInterval) {
+                clearInterval(smsPollingInterval);
+                smsPollingInterval = null;
+            }
+        }
+
+        function displayReceivedSMS(sms) {
+            const container = document.getElementById('sms-container');
+            if (!container) return;
+            
+            const codeMatch = sms.match(/\d{4,8}/);
+            const otpCode = codeMatch ? codeMatch[0] : null;
+            
+            container.innerHTML = `
+                <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 p-6 rounded-[24px] text-center page-enter">
+                    <p class="text-[11px] font-bold text-green-600 uppercase tracking-widest mb-3">OTP Code Received</p>
+                    <h2 class="text-4xl font-black text-gray-900 dark:text-white tracking-widest mb-4">${otpCode || 'CHECK SMS'}</h2>
+                    <div class="p-4 bg-white/50 dark:bg-black/20 rounded-xl text-left text-sm font-medium text-gray-700 dark:text-gray-300 italic mb-4">
+                        "${sms}"
+                    </div>
+                    <button onclick="copyToClipboard('${otpCode || sms}')" class="bg-green-600 text-white px-6 py-2 rounded-full text-xs font-bold shadow-lg shadow-green-600/20 interactive-btn">Copy Code</button>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // Simulation & Order Tracking Implementation
+        // ==========================================
+        async function simulateFunding() {
+            try {
+                const response = await fetch('/api/wallet/test-fund', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    showToast(result.message);
+                    loadWallet();
+                }
+            } catch (e) {
+                showToast('Simulation failed', 'error');
+            }
+        }
+
+        async function loadOrderHistory() {
+            const container = document.getElementById('orders-container');
+            if (!container) return;
+            
+            try {
+                const response = await fetch('/api/orders');
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    container.innerHTML = result.data.map(order => {
+                        const statusColor = order.status === 'completed' ? 'text-green-500' : order.status === 'pending' ? 'text-orange-500' : 'text-primary';
+                        const progress = order.status === 'completed' ? 100 : (order.remains && order.quantity) ? Math.max(0, Math.min(100, ((order.quantity - order.remains) / order.quantity) * 100)) : 10;
+                        
+                        return `
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-gray-700 stagger-in grainy transition-colors">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-sm dark:text-white line-clamp-1">${order.service}</h4>
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-wider">ID: ${order.id} • ${new Date(order.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                    <span class="text-[11px] font-black uppercase tracking-widest ${statusColor}">${order.status}</span>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase">
+                                        <span>Progress</span>
+                                        <span>${Math.round(progress)}%</span>
+                                    </div>
+                                    <div class="w-full h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-primary transition-all duration-1000 ease-out" style="width: ${progress}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                    <p class="text-[11px] font-bold text-gray-400 truncate max-w-[180px]">${order.link}</p>
+                                    <button onclick="checkOrderStatus('${order.id}')" class="text-[10px] font-extrabold text-primary uppercase bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">Details</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="p-12 text-center">
+                            <span class="material-symbols-outlined text-[48px] text-gray-200 dark:text-gray-700 mb-3 block">history</span>
+                            <p class="text-gray-400 font-bold text-sm uppercase tracking-wider">No orders found</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Failed to load orders:', err);
             }
         }
     </script>
