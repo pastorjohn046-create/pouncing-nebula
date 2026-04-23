@@ -1405,6 +1405,9 @@ const server = http.createServer(async (req, res) => {
 
     // ---- API: Rent Virtual Number ----
     if (pathname === '/api/rent-number' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            const { country, service, price } = body;
             const userId = getUserId(req);
             if (!userId) return sendJSON(res, 401, { success: false, error: 'Unauthorized' });
             

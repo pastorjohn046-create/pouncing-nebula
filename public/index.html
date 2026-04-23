@@ -1632,6 +1632,10 @@
             const overlay = document.getElementById('success-overlay');
             const iconWrap = document.getElementById('success-icon-wrap');
             overlay.classList.remove('hidden');
+            
+            // Trigger confetti
+            if (window.triggerConfetti) window.triggerConfetti();
+            
             requestAnimationFrame(() => {
                 overlay.style.opacity = '1';
                 setTimeout(() => { iconWrap.classList.remove('scale-50'); iconWrap.classList.add('scale-100'); }, 50);
