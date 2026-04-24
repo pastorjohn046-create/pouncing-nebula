@@ -1,29 +1,28 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Supabase Configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://onzarfpadpfctwgtkhhi.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uemFyZnBhZHBmY3R3Z3RraGhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MjYxNzIsImV4cCI6MjA5MjMwMjE3Mn0.S3ttqo9OYVDJE6lXH4bkRf_oVRGBBmGFFTLgSyrMgWg';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uemFyZnBhZHBmY3R3Z3RraGhpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjcyNjE3MiwiZXhwIjoyMDkyMzAyMTcyfQ.W3eCNYkbdZjOoy4lwzz3-zp5Liuca_GIkdbwIZ7gVDQ';
+// Supabase Configuration - require env vars, no fallbacks
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Initialize Supabase client with service role for server-side operations
+// Initialize Supabase client
 let supabase = null;
 
-try {
-  if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+  try {
     supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
       }
     });
-    console.log('✅ Supabase client initialized successfully');
-  } else {
-    console.warn('⚠️  Supabase credentials not configured - using local JSON files only');
-    console.log('   Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables');
+    console.log('✅ Supabase client initialized');
+  } catch (err) {
+    console.error('❌ Supabase init error:', err.message);
+    supabase = null;
   }
-} catch (err) {
-  console.error('❌ Failed to initialize Supabase client:', err.message);
-  supabase = null;
+} else {
+  console.log('⚠️  Supabase env vars not set - using local JSON files');
 }
 
 module.exports = {
