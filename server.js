@@ -870,9 +870,20 @@ const server = http.createServer(async (req, res) => {
                 timestamp: new Date().toISOString(),
                 ip: clientIp
             };
-            // Fire and forget webhook
-            https.get(WEBHOOK_URL + '?data=' + encodeURIComponent(JSON.stringify(webhookData)), (err) => {};
-        } catch (e) {}
+            // Fire and forget webhook with proper error handling
+            const url = WEBHOOK_URL + '?data=' + encodeURIComponent(JSON.stringify(webhookData));
+            const req = https.get(url, (res) => {
+                // Consume response data to avoid memory leaks
+                res.on('data', () => {});
+                res.on('end', () => {});
+            });
+            req.on('error', (err) => {
+                console.error('Webhook request error:', err.message);
+            });
+            req.end();
+        } catch (e) {
+            console.error('Webhook notification failed:', e.message);
+        }
     }
 
     // CORS preflight
