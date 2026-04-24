@@ -4,7 +4,15 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const querystring = require('querystring');
-const { supabase } = require('./supabase');
+
+// Conditionally load Supabase only if available
+let supabase = null;
+try {
+    const supabaseModule = require('./supabase');
+    supabase = supabaseModule.supabase;
+} catch (err) {
+    console.log('Supabase not available:', err.message);
+}
 
 const PORT = process.env.PORT || 3000;
 
