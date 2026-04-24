@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Vertex Booster - Premium SMM & VTU Hub",
   "main": "server.js",
+  "license": "MIT",
   "engines": {
     "node": ">=18"
   },
