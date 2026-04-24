@@ -1562,7 +1562,7 @@ server.listen(PORT, async () => {
     console.log(`  ║  Vertex Booster Server — Port ${PORT}        ║`);
     console.log(`  ║  BulkSM API Integrated                   ║`);
     console.log(`  ║  Peyflex VTU API Integrated             ║`);
-                    console.log(`  ║  Price Markup: 0% (USD×2000=NGN)          ║`);
+    console.log(`  ║  Price Markup: 0% (USD×2000=NGN)          ║`);
     console.log(`  ║  http://localhost:${PORT}                   ║`);
 
     // Check Supabase configuration
