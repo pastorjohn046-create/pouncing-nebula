@@ -332,7 +332,10 @@ function callBulkSM(params) {
             });
         });
 
-        req.on('error', reject);
+        req.on('error', (err) => {
+            console.error('BulkSM API error:', err.message);
+            reject(new Error('Failed to connect to BulkSM API: ' + err.message));
+        });
         req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
         req.write(postData);
         req.end();
@@ -417,7 +420,7 @@ function paystackVerify(reference) {
 }
 
 // ==========================================
-// Peyflex: Airtime Purchase
+// Peyflex: Airtime Topup
 // ==========================================
 function peyflexAirtime(phone, network, amount) {
     return new Promise((resolve, reject) => {
@@ -449,6 +452,18 @@ function peyflexAirtime(phone, network, amount) {
                 } catch (e) {
                     resolve({ code: 'parse_error', message: data });
                 }
+            });
+        });
+        
+        req.on('error', (err) => {
+            console.error('Peyflex API error:', err.message);
+            reject(new Error('Failed to connect to Peyflex API: ' + err.message));
+        });
+        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
+        req.write(postData);
+        req.end();
+    });
+}
             });
         });
         
@@ -495,7 +510,10 @@ function peyflexData(phone, network, planId) {
             });
         });
         
-        req.on('error', reject);
+        req.on('error', (err) => {
+            console.error('Peyflex API error:', err.message);
+            reject(new Error('Failed to connect to Peyflex API: ' + err.message));
+        });
         req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
         req.write(postData);
         req.end();
