@@ -38,10 +38,11 @@ function rateLimitCheck(ip) {
 const BULKSMM_API_URL = 'https://bulksm.com/api/v1';
 const BULKSMM_API_KEY = process.env.BULKSMM_API_KEY || 'your_bulksm_api_key_here';
 
-// Markup multiplier: API price * 2.5 = user-facing price in Naira
-const PRICE_MARKUP = 2.5;
-// API returns prices in Naira (no conversion needed)
-// API price ₦1,000 → Site displays ₦2,500 
+// Markup multiplier: API price (in USD) * 2000 = user-facing price in Naira
+// 0% global markup applied as requested
+const PRICE_MARKUP = 1.0; // 0% markup
+// API returns prices in USD, convert to NGN at 2000 rate
+// API price $1.00 → Site displays ₦2000 
 
 // ==========================================
 // Paystack Configuration (Payments)
@@ -965,7 +966,7 @@ const server = http.createServer(async (req, res) => {
                     name: s.name,
                     category: s.category || 'Other',
                     platform: detectPlatform(s.name, s.category || ''),
-                    rate: (parseFloat(s.rate) * PRICE_MARKUP).toFixed(2),         // Marked-up Naira price per 1k
+                     rate: (parseFloat(s.rate) * 2000).toFixed(0),         // USD to NGN conversion at 2000 rate
                     originalRate: s.rate,  // keep original for internal use (don't show)
                     min: parseInt(s.min) || 10,
                     max: parseInt(s.max) || 100000,
@@ -1561,7 +1562,7 @@ server.listen(PORT, async () => {
     console.log(`  ║  Vertex Booster Server — Port ${PORT}        ║`);
     console.log(`  ║  BulkSM API Integrated                   ║`);
     console.log(`  ║  Peyflex VTU API Integrated             ║`);
-    console.log(`  ║  Price Markup: ${PRICE_MARKUP}x (NGN)               ║`);
+                    console.log(`  ║  Price Markup: 0% (USD×2000=NGN)          ║`);
     console.log(`  ║  http://localhost:${PORT}                   ║`);
 
     // Check Supabase configuration
