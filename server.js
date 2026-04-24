@@ -1557,7 +1557,6 @@ server.listen(PORT, async () => {
     initUsers();
     initOrders();
 
-    // Verify Supabase connection on startup
     console.log(`\n  ╔═════════════════════════════╗`);
     console.log(`  ║  Vertex Booster Server — Port ${PORT}        ║`);
     console.log(`  ║  BulkSM API Integrated                   ║`);
@@ -1568,22 +1567,9 @@ server.listen(PORT, async () => {
     // Check Supabase configuration
     if (supabase) {
         console.log(`  ║  Supabase: Configured ✅                ║`);
-        try {
-            const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
-            if (!error) {
-                console.log(`  ║  Supabase: Connected ✅ (${process.env.NODE_ENV || 'development'})  ║`);
-            } else {
-                console.log(`  ║  Supabase: Connection failed ❌             ║`);
-                console.error('  ║  Supabase error:', error.message);
-            }
-        } catch (err) {
-            console.log(`  ║  Supabase: Connection error ❌              ║`);
-            console.error('  ║  Supabase exception:', err.message);
-        }
     } else {
         console.log(`  ║  Supabase: Not configured ⚠️                ║`);
         console.log(`  ║  Using local JSON files                 ║`);
     }
-
     console.log(`  ╚═════════════════════════════╝\n`);
 });
