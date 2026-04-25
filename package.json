@@ -5,12 +5,12 @@
   "main": "server.js",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "2.39.0"
   }
 }
