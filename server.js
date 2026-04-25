@@ -14,15 +14,6 @@ const path = require('path');
 const url = require('url');
 const querystring = require('querystring');
 
-// Conditionally load Supabase only if available
-let supabase = null;
-try {
-    const supabaseModule = require('./supabase');
-    supabase = supabaseModule.supabase;
-} catch (err) {
-    console.log('Supabase not available:', err.message);
-}
-
 const PORT = process.env.PORT || 3000;
 
 // ==========================================
@@ -72,13 +63,13 @@ const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 // Peyflex Configuration (Airtime/Data/Bills)
 // ==========================================
 const PEYFLEX_BASE_URL = 'https://client.peyflex.com.ng';
-const PEYFLEX_API_KEY = '47e65c11df8bd00b51598b914a0f3032aedb19ce';
+const PEYFLEX_API_KEY = process.env.PEYFLEX_API_KEY || '47e65c11df8bd00b51598b914a0f3032aedb19ce';
 
 // ==========================================
 // BoostVerify Configuration (Phone Verification)
 // ==========================================
 const BOOSTVERIFY_BASE_URL = 'https://boostverify.com.ng/api';
-const BOOSTVERIFY_API_KEY = 'your_boostverify_api_key_here';
+const BOOSTVERIFY_API_KEY = process.env.BOOSTVERIFY_API_KEY || 'your_boostverify_api_key_here';
 
 const WALLET_FILE = path.join(__dirname, 'wallet.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
@@ -118,152 +109,59 @@ function initOrders() {
     }
 }
 
-async function readWallet() {
-    const { data, error } = await supabase
-        .from('wallet')
-        .select('*')
-        .single();
-    
-    if (error) {
-        initWallet();
+function readWallet() {
+    try {
         return JSON.parse(fs.readFileSync(WALLET_FILE, 'utf-8'));
+    } catch (err) {
+        console.error('Error reading wallet:', err.message);
+        return { balance: 0, totalFunded: 0, totalSpent: 0, transactions: [] };
     }
-    
-    const transactions = await getTransactions();
-    return {
-        balance: data.balance,
-        totalFunded: data.total_funded,
-        totalSpent: data.total_spent,
-        transactions
-    };
 }
 
-async function writeWallet(data) {
-    await supabase
-        .from('wallet')
-        .upsert({
-            id: 1,
-            balance: data.balance,
-            total_funded: data.totalFunded,
-            total_spent: data.totalSpent,
-            updated_at: new Date().toISOString()
-        });
-    
-    fs.writeFileSync(WALLET_FILE, JSON.stringify(data, null, 2));
+function writeWallet(data) {
+    try {
+        fs.writeFileSync(WALLET_FILE, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error('Error writing wallet:', err.message);
+    }
 }
 
-async function readUsers() {
-    // Try Supabase first
-    if (supabase) {
-        try {
-            const { data, error } = await supabase
-                .from('users')
-                .select('*');
-            
-            if (!error && data) {
-                console.log(`✅ Loaded ${data.length} users from Supabase`);
-                return data;
-            }
-            console.error('❌ Supabase readUsers error:', error?.message);
-        } catch (err) {
-            console.error('❌ Supabase readUsers exception:', err.message);
-        }
-    }
-    
-    // Fallback to local file
-    console.log('📁 Falling back to local users.json');
-    initUsers();
+function readUsers() {
     try {
         return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
     } catch (err) {
-        console.error('❌ Failed to read local users file:', err.message);
+        console.error('Error reading users:', err.message);
         return [];
     }
 }
 
-async function writeUsers(data) {
-    // Try Supabase first
-    if (supabase) {
-        try {
-            for (const user of data) {
-                const { error } = await supabase
-                    .from('users')
-                    .upsert({
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        password_hash: user.passwordHash,
-                        referral_code: user.referralCode,
-                        referred_by: user.referredBy,
-                        referrals: user.referrals,
-                        vip_level: user.vipLevel,
-                        created_at: user.createdAt
-                    });
-                if (error) {
-                    console.error('❌ Supabase writeUser error:', error.message);
-                }
-            }
-            console.log(`✅ Synced ${data.length} users to Supabase`);
-        } catch (err) {
-            console.error('❌ Supabase writeUsers exception:', err.message);
-        }
-    }
-    
-    // Always write to local file as backup
+function writeUsers(data) {
     try {
         fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
     } catch (err) {
-        console.error('❌ Failed to write local users file:', err.message);
+        console.error('Error writing users:', err.message);
     }
 }
 
-async function readOrders() {
-    const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-    
-    if (error) {
-        initOrders();
+function readOrders() {
+    try {
         return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf-8'));
+    } catch (err) {
+        console.error('Error reading orders:', err.message);
+        return [];
     }
-    
-    return data;
 }
 
-async function writeOrders(data) {
-    for (const order of data) {
-        await supabase
-            .from('orders')
-            .upsert({
-                id: order.id,
-                service: order.service,
-                link: order.link,
-                quantity: order.quantity,
-                cost: order.cost,
-                status: order.status,
-                created_at: order.createdAt
-            });
+function writeOrders(data) {
+    try {
+        fs.writeFileSync(ORDERS_FILE, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error('Error writing orders:', err.message);
     }
-    
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(data, null, 2));
 }
 
-async function addTransaction(type, amount, description, status = 'success', metadata = {}) {
-    const { data, error } = await supabase
-        .from('transactions')
-        .insert({
-            id: 'TXN_' + Math.floor(Math.random() * 1000000),
-            type,
-            amount,
-            description,
-            status,
-            metadata,
-            created_at: new Date().toISOString()
-        })
-        .select();
-    
-    const wallet = await readWallet();
+function addTransaction(type, amount, description, status = 'success', metadata = {}) {
+    const wallet = readWallet();
     const txn = {
         id: 'TXN_' + Math.floor(Math.random() * 1000000),
         type,
@@ -281,43 +179,14 @@ async function addTransaction(type, amount, description, status = 'success', met
         wallet.balance += amount;
         wallet.totalFunded += amount;
     }
-    await writeWallet(wallet);
-    return txn;
-}
-
-async function getTransactions(limit = 100) {
-    const { data } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-    
-    return data || [];
-}
-
-function addTransaction(type, amount, description, status = 'success', metadata = {}) {
-    const wallet = readWallet();
-    const txn = {
-        id: 'TXN_' + Math.floor(Math.random() * 1000000),
-        type,
-        amount,
-        description,
-        status,
-        metadata,
-        timestamp: new Date().toISOString()
-    };
-    wallet.transactions.unshift(txn); // Add to start
-    if (type === 'spend') {
-        wallet.balance -= amount;
-        wallet.totalSpent += amount;
-    } else {
-        wallet.balance += amount;
-        wallet.totalFunded += amount;
-    }
     writeWallet(wallet);
     return txn;
 }
 
+function getTransactions(limit = 100) {
+    const wallet = readWallet();
+    return wallet.transactions.slice(0, limit);
+}
 
 // ==========================================
 // Helper: Call BulkSM API (built-in https)
@@ -477,15 +346,6 @@ function peyflexAirtime(phone, network, amount) {
             console.error('Peyflex API error:', err.message);
             reject(new Error('Failed to connect to Peyflex API: ' + err.message));
         });
-        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
-        req.write(postData);
-        req.end();
-    });
-}
-            });
-        });
-        
-        req.on('error', reject);
         req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
         req.write(postData);
         req.end();
@@ -934,39 +794,14 @@ const server = http.createServer(async (req, res) => {
 
     // ---- API: Health Check ----
     if (pathname === '/api/health' && req.method === 'GET') {
-        const health = {
+        return sendJSON(res, 200, {
             status: 'ok',
-            supabase: { configured: false, connected: false },
-            timestamp: new Date().toISOString()
-        };
-        
-        // Check if Supabase is configured
-        if (supabase) {
-            health.supabase.configured = true;
-            
-            // Try a simple query to test connection
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('count', { count: 'exact', head: true });
-                
-                if (!error) {
-                    health.supabase.connected = true;
-                    health.supabase.message = 'Successfully connected to Supabase';
-                } else {
-                    health.supabase.message = `Connection test failed: ${error.message}`;
-                }
-            } catch (err) {
-                health.supabase.message = `Exception: ${err.message}`;
-            }
-        } else {
-            health.supabase.message = 'Supabase client not initialized';
-        }
-        
-        return sendJSON(res, 200, health);
+            timestamp: new Date().toISOString(),
+            mode: 'local-json'
+        });
     }
 
-    // ---- API: Get Services (with 2.5x markup) ----
+    // ---- API: Get Services (with 0% markup) ----
     if (pathname === '/api/services' && req.method === 'GET') {
         try {
             const now = Date.now();
@@ -977,7 +812,7 @@ const server = http.createServer(async (req, res) => {
             const data = await callBulkSM({ action: 'services' });
 
             if (Array.isArray(data)) {
-                // Apply 2.5x markup and convert to Naira
+                // Apply 0% markup and convert to Naira
                 const services = data.map(s => ({
                     id: s.service,
                     name: s.name,
@@ -1569,7 +1404,7 @@ const server = http.createServer(async (req, res) => {
     return serveIndex(res);
 });
 
-server.listen(PORT, async () => {
+server.listen(PORT, () => {
     initWallet();
     initUsers();
     initOrders();
@@ -1579,14 +1414,7 @@ server.listen(PORT, async () => {
     console.log(`  ║  BulkSM API Integrated                   ║`);
     console.log(`  ║  Peyflex VTU API Integrated             ║`);
     console.log(`  ║  Price Markup: 0% (USD×2000=NGN)          ║`);
+    console.log(`  ║  Mode: Local JSON Files                  ║`);
     console.log(`  ║  http://localhost:${PORT}                   ║`);
-
-    // Check Supabase configuration
-    if (supabase) {
-        console.log(`  ║  Supabase: Configured ✅                ║`);
-    } else {
-        console.log(`  ║  Supabase: Not configured ⚠️                ║`);
-        console.log(`  ║  Using local JSON files                 ║`);
-    }
     console.log(`  ╚═════════════════════════════╝\n`);
 });

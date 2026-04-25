@@ -9,11 +9,5 @@ services:
     envVars:
       - key: PORT
         value: "3000"
-      - key: SUPABASE_URL
-        value: https://onzarfpadpfctwgtkhhi.supabase.co
-      - key: SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uemFyZnBhZHBmY3R3Z3RraGhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MjYxNzIsImV4cCI6MjA5MjMwMjE3Mn0.S3ttqo9OYVDJE6lXH4bkRf_oVRGBBmGFFTLgSyrMgWg
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uemFyZnBhZHBmY3R3Z3RraGhpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjcyNjE3MiwiZXhwIjoyMDkyMzAyMTcyfQ.W3eCNYkbdZjOoy4lwzz3-zp5Liuca_GIkdbwIZ7gVDQ
       - key: NODE_ENV
         value: production
