@@ -1,3 +1,12 @@
+// Global error handlers
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err.message);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
