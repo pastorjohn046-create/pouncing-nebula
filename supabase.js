@@ -1,4 +1,11 @@
-const { createClient } = require('@supabase/supabase-js');
+let createClient;
+try {
+    const supabaseModule = require('@supabase/supabase-js');
+    createClient = supabaseModule.createClient;
+} catch (e) {
+    console.warn('⚠️  @supabase/supabase-js module not found. Falling back to local storage.');
+    createClient = null;
+}
 
 // Supabase Configuration
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://onzarfpadpfctwgtkhhi.supabase.co';
@@ -8,7 +15,7 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJh
 // Initialize Supabase client
 let supabase = null;
 
-if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+if (createClient && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
   supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
@@ -19,13 +26,6 @@ if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
   console.warn('⚠️  Supabase credentials not configured - using local JSON files only');
   console.log('   Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables');
 }
-
-module.exports = {
-  supabase,
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-};
-
 
 module.exports = {
   supabase,

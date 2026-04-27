@@ -169,85 +169,93 @@ async function writeWallet(userId, data) {
 }
 
 async function readUsers() {
-    const { data, error } = await supabase
-        .from('users')
-        .select('*');
-    
-    if (error) {
-        initUsers();
-        return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
-    }
-    
-    // Map snake_case DB fields to camelCase for consistent code
-    return data.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        passwordHash: user.password_hash,
-        referralCode: user.referral_code,
-        referredBy: user.referred_by,
-        referrals: user.referrals,
-        vipLevel: user.vip_level,
-        createdAt: user.created_at
-    }));
-}
-
-async function writeUsers(data) {
-    for (const user of data) {
-        await supabase
+    if (supabase) {
+        const { data, error } = await supabase
             .from('users')
-            .upsert({
+            .select('*');
+        
+        if (!error && data) {
+            // Map snake_case DB fields to camelCase for consistent code
+            return data.map(user => ({
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                password_hash: user.passwordHash,
-                referral_code: user.referralCode,
-                referred_by: user.referredBy,
+                passwordHash: user.password_hash,
+                referralCode: user.referral_code,
+                referredBy: user.referred_by,
                 referrals: user.referrals,
-                vip_level: user.vipLevel,
-                created_at: user.createdAt
-            });
+                vipLevel: user.vip_level,
+                createdAt: user.created_at
+            }));
+        }
+    }
+    
+    initUsers();
+    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
+}
+
+async function writeUsers(data) {
+    if (supabase) {
+        for (const user of data) {
+            await supabase
+                .from('users')
+                .upsert({
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    password_hash: user.passwordHash,
+                    referral_code: user.referralCode,
+                    referred_by: user.referredBy,
+                    referrals: user.referrals,
+                    vip_level: user.vipLevel,
+                    created_at: user.createdAt
+                });
+        }
     }
     
     fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
 }
 
 async function readOrders() {
-    const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-    
-    if (error) {
-        initOrders();
-        return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf-8'));
-    }
-    
-    // Map snake_case to camelCase
-    return (data || []).map(order => ({
-        id: order.id,
-        service: order.service,
-        link: order.link,
-        quantity: order.quantity,
-        cost: order.cost,
-        status: order.status,
-        createdAt: order.created_at
-    }));
-}
-
-async function writeOrders(data) {
-    for (const order of data) {
-        await supabase
+    if (supabase) {
+        const { data, error } = await supabase
             .from('orders')
-            .upsert({
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (!error && data) {
+            // Map snake_case to camelCase
+            return data.map(order => ({
                 id: order.id,
                 service: order.service,
                 link: order.link,
                 quantity: order.quantity,
                 cost: order.cost,
                 status: order.status,
-                created_at: order.createdAt
-            });
+                createdAt: order.created_at
+            }));
+        }
+    }
+    
+    initOrders();
+    return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf-8'));
+}
+
+async function writeOrders(data) {
+    if (supabase) {
+        for (const order of data) {
+            await supabase
+                .from('orders')
+                .upsert({
+                    id: order.id,
+                    service: order.service,
+                    link: order.link,
+                    quantity: order.quantity,
+                    cost: order.cost,
+                    status: order.status,
+                    created_at: order.createdAt
+                });
+        }
     }
     
     fs.writeFileSync(ORDERS_FILE, JSON.stringify(data, null, 2));
