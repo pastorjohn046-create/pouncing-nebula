@@ -527,7 +527,7 @@
                 <!-- VTU Tab -->
                 <div id="content-vtu" class="space-y-6 hide pb-4">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Airtime Topup', 'vtu', '', 'Instant automated recharge for all major networks.')">
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Airtime Topup', 'vtu_airtime', '', 'Instant automated recharge for all major networks.')">
                             <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-[18px] flex justify-center items-center">
                                 <span class="material-symbols-outlined icon-fill">call</span>
                             </div>
@@ -536,7 +536,7 @@
                                 <p class="text-[10px] text-green-600 font-extrabold mt-1 border border-green-200 bg-green-50 px-2 py-0.5 rounded uppercase inline-block">2% OFF</p>
                             </div>
                         </div>
-                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Data Bundles', 'vtu', '', 'Instant data delivery. Cheap valid rates.')">
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Data Bundles', 'vtu_data', '', 'Instant data delivery. Cheap valid rates.')">
                             <div class="w-14 h-14 bg-green-50 text-green-600 rounded-[18px] flex justify-center items-center">
                                 <span class="material-symbols-outlined icon-fill">wifi</span>
                             </div>
@@ -545,7 +545,7 @@
                                 <p class="text-[11px] text-gray-500 font-semibold mt-1">All Networks</p>
                             </div>
                         </div>
-                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="showToast('Opening Electricity Payments', 'info')">
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Electricity', 'vtu_elec', '', 'Pay for your prepaid or postpaid electricity.')">
                             <div class="w-14 h-14 bg-yellow-50 text-yellow-600 rounded-[18px] flex justify-center items-center">
                                 <span class="material-symbols-outlined icon-fill">lightbulb</span>
                             </div>
@@ -554,7 +554,7 @@
                                 <p class="text-[11px] text-gray-500 font-semibold mt-1">Prepaid/Postpaid</p>
                             </div>
                         </div>
-                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="showToast('Opening Cable TV', 'info')">
+                        <div class="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex flex-col gap-3 interactive-btn cursor-pointer" onclick="openBottomSheet('Cable TV', 'vtu_cable', '', 'Subscribe to DSTV, GOTV, or StarTimes.')">
                             <div class="w-14 h-14 bg-red-50 text-red-600 rounded-[18px] flex justify-center items-center">
                                 <span class="material-symbols-outlined icon-fill">tv</span>
                             </div>
@@ -614,6 +614,29 @@
 
                 <!-- Virtual Numbers Tab -->
                 <div id="content-numbers" class="space-y-6 hide pb-4 w-full">
+                    <!-- Active Number Inline Display (Hidden by default) -->
+                    <div id="active-number-container" class="hidden bg-gradient-to-br from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900 border border-indigo-100 dark:border-gray-700 p-6 rounded-[24px] shadow-sm mb-6 relative overflow-hidden transition-all duration-300">
+                        <div class="flex justify-between items-start mb-6 relative z-10">
+                            <div>
+                                <h3 class="font-headline font-extrabold text-3xl tracking-tight text-gray-900 dark:text-white" id="active-number-display">---</h3>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    <p class="text-[11px] text-gray-500 font-bold uppercase tracking-widest" id="active-number-status">Waiting for OTP...</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="copyToClipboard(document.getElementById('active-number-display').innerText)" class="w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-center text-primary interactive-btn shadow-sm"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+                                <button onclick="cancelActiveNumber()" class="w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-center text-red-500 interactive-btn shadow-sm"><span class="material-symbols-outlined text-[18px]">close</span></button>
+                            </div>
+                        </div>
+                        <div id="inline-sms-container" class="relative z-10">
+                            <div class="p-6 text-center bg-white/50 dark:bg-black/20 rounded-2xl border border-indigo-50/50 dark:border-gray-800">
+                                <div class="w-8 h-8 border-4 border-indigo-200 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+                                <p class="text-[11px] text-gray-400 font-medium">Listening for incoming SMS on this number...</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Search & Filter Bar -->
                     <div class="flex flex-col md:flex-row gap-3">
                         <div class="relative flex-1">
@@ -919,7 +942,6 @@
             });
         }
 
-        const views = ['home', 'services', 'wallet', 'profile'];
         let toastTimeout;
         let isSheetOpen = false;
 
@@ -1551,7 +1573,7 @@
                     </div>
                     <button class="w-full bg-primary text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-primary/25 interactive-btn flex justify-center items-center gap-2" onclick="processOrder(this)">Confirm Order</button>
                 `;
-            } else if (serviceType === 'vtu') {
+            } else if (serviceType === 'vtu_airtime') {
                  htmlForm = `
                     <h3 class="font-headline font-extrabold text-xl pr-8">${serviceTitle}</h3>
                     <p class="text-[12px] text-gray-500 font-medium mt-1 mb-5">${details}</p>
@@ -1564,14 +1586,102 @@
                         </div>
                         <div>
                             <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Phone Number</label>
-                            <input type="tel" placeholder="080XXXXXXXX" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <input type="tel" id="vtu-phone" placeholder="080XXXXXXXX" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         </div>
                         <div>
                             <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Amount</label>
-                            <input type="number" placeholder="Amount (₦)" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <input type="number" id="vtu-amount" placeholder="Amount (₦)" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                         </div>
                     </div>
-                    <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn flex justify-center items-center gap-2" onclick="submitVTUOrder(this)">Pay Securely</button>
+                    <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn flex justify-center items-center gap-2" onclick="submitVTUOrder('Airtime', this)">Pay Securely</button>
+                `;
+            } else if (serviceType === 'vtu_data') {
+                 htmlForm = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8">${serviceTitle}</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-5">${details}</p>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-4 gap-2" id="network-selector">
+                            <div onclick="selectNetwork('GLO', this)" class="network-pill p-2 border border-gray-200 bg-white rounded-xl flex items-center justify-center font-bold text-xs cursor-pointer text-gray-500 hover:border-primary transition-all">GLO</div>
+                            <div onclick="selectNetwork('MTN', this)" class="network-pill p-2 border-2 border-primary bg-primary/5 rounded-xl flex items-center justify-center font-bold text-xs text-primary cursor-pointer">MTN</div>
+                            <div onclick="selectNetwork('AIRTEL', this)" class="network-pill p-2 border border-gray-200 bg-white rounded-xl flex items-center justify-center font-bold text-xs text-gray-500 cursor-pointer hover:border-primary transition-all">AIRTEL</div>
+                            <div onclick="selectNetwork('9MOBILE', this)" class="network-pill p-2 border border-gray-200 bg-white rounded-xl flex items-center justify-center font-bold text-xs text-gray-500 cursor-pointer hover:border-primary transition-all">9MOB</div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Phone Number</label>
+                            <input type="tel" id="vtu-phone" placeholder="080XXXXXXXX" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Data Plan</label>
+                            <select id="vtu-dataplan" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                <option value="1GB">1GB - ₦300</option>
+                                <option value="2GB">2GB - ₦600</option>
+                                <option value="5GB">5GB - ₦1500</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn flex justify-center items-center gap-2" onclick="submitVTUOrder('Data', this)">Pay Securely</button>
+                `;
+            } else if (serviceType === 'vtu_elec') {
+                 htmlForm = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8">${serviceTitle}</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-5">${details}</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Disco / Provider</label>
+                            <select id="vtu-service" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                <option value="ikeja-electric">Ikeja Electric (IKEDC)</option>
+                                <option value="eko-electric">Eko Electric (EKEDC)</option>
+                                <option value="abuja-electric">Abuja Electric (AEDC)</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Meter Number</label>
+                                <input type="text" id="vtu-meter" placeholder="10101010101" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Meter Type</label>
+                                <select id="vtu-metertype" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                    <option value="prepaid">Prepaid</option>
+                                    <option value="postpaid">Postpaid</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Amount (₦)</label>
+                            <input type="number" id="vtu-amount" placeholder="Amount (₦)" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn flex justify-center items-center gap-2" onclick="submitVTUOrder('Electricity', this)">Pay Securely</button>
+                `;
+            } else if (serviceType === 'vtu_cable') {
+                 htmlForm = `
+                    <h3 class="font-headline font-extrabold text-xl pr-8">${serviceTitle}</h3>
+                    <p class="text-[12px] text-gray-500 font-medium mt-1 mb-5">${details}</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Provider</label>
+                            <select id="vtu-service" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                <option value="dstv">DSTV</option>
+                                <option value="gotv">GOTV</option>
+                                <option value="startimes">StarTimes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Smartcard / IUC Number</label>
+                            <input type="text" id="vtu-meter" placeholder="1234567890" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Cable Plan</label>
+                            <select id="vtu-dataplan" class="w-full mt-1.5 px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                                <option value="Yanga">Yanga - ₦4,200</option>
+                                <option value="Confam">Confam - ₦7,400</option>
+                                <option value="Compact">Compact - ₦12,500</option>
+                                <option value="Premium">Premium - ₦29,500</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-8 shadow-lg shadow-gray-900/20 interactive-btn flex justify-center items-center gap-2" onclick="submitVTUOrder('Cable TV', this)">Pay Securely</button>
                 `;
             } else if (serviceType === 'account') {
                 htmlForm = `
@@ -1859,13 +1969,35 @@
             }
         }
 
-        async function submitVTUOrder(btn) {
-            const amountInput = document.querySelector('#sheet-content input[type="number"]');
-            const phoneInput = document.querySelector('#sheet-content input[type="tel"]');
+        async function submitVTUOrder(vtuType, btn) {
+            const amountInput = document.querySelector('#sheet-content #vtu-amount');
+            const phoneInput = document.querySelector('#sheet-content #vtu-phone');
+            const meterInput = document.querySelector('#sheet-content #vtu-meter');
+            const dataPlanSelect = document.querySelector('#sheet-content #vtu-dataplan');
+            const serviceSelect = document.querySelector('#sheet-content #vtu-service');
+            const meterTypeSelect = document.querySelector('#sheet-content #vtu-metertype');
+
             const amount = amountInput ? amountInput.value : '';
             const phone = phoneInput ? phoneInput.value : '';
-            
-            if(!phone || !amount) { showToast('Please fill all fields', 'error'); return; }
+            const meterNumber = meterInput ? meterInput.value : '';
+            const dataPlan = dataPlanSelect ? dataPlanSelect.value : '';
+            const service = serviceSelect ? serviceSelect.value : '';
+            const meterType = meterTypeSelect ? meterTypeSelect.value : '';
+
+            let payload = {};
+            if (vtuType === 'Airtime') {
+                if(!phone || !amount || typeof selectedNetwork === 'undefined' || !selectedNetwork) { showToast('Please fill all fields', 'error'); return; }
+                payload = { type: 'airtime', network: selectedNetwork, phone, amount };
+            } else if (vtuType === 'Data') {
+                if(!phone || typeof selectedNetwork === 'undefined' || !selectedNetwork || !dataPlan) { showToast('Please fill all fields', 'error'); return; }
+                payload = { type: 'data', network: selectedNetwork, phone, dataPlan };
+            } else if (vtuType === 'Electricity') {
+                if(!meterNumber || !amount || !service || !meterType) { showToast('Please fill all fields', 'error'); return; }
+                payload = { type: 'electricity', meterNumber, meterType, amount, service };
+            } else if (vtuType === 'Cable TV') {
+                if(!meterNumber || !service || !dataPlan) { showToast('Please fill all fields', 'error'); return; }
+                payload = { type: 'cable', phone: meterNumber, cablePlan: dataPlan, service };
+            }
 
             const originalHTML = btn.innerHTML;
             btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Processing...`;
@@ -1875,7 +2007,7 @@
                 const response = await fetch('/api/purchase/vtu', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ type: 'Airtime', network: selectedNetwork, phone, amount })
+                    body: JSON.stringify(payload)
                 });
                 const result = await response.json();
                 if(result.success) {
@@ -2188,6 +2320,7 @@
             }
         }
 
+
         // ==========================================
         // Virtual Numbers Implementation
         // ==========================================
@@ -2327,7 +2460,7 @@ function renderVerifyCountries(countries) {
                 
                 if (result.success) {
                     currentRentedNumber = result;
-                    openSMSInboxSheet(result);
+                    showInlineSMS(result);
                     loadWallet();
                 } else {
                     showToast(result.error || 'Failed to rent number', 'error');
@@ -2337,36 +2470,33 @@ function renderVerifyCountries(countries) {
             }
         }
 
-        function openSMSInboxSheet(numberData) {
-            openBottomSheet(`Number: ${numberData.number}`, 'sms-inbox', '', '');
-            const content = document.getElementById('sheet-content');
+        function showInlineSMS(numberData) {
+            const container = document.getElementById('active-number-container');
+            const display = document.getElementById('active-number-display');
+            const status = document.getElementById('active-number-status');
+            const smsContainer = document.getElementById('inline-sms-container');
             
-            content.innerHTML = `
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h3 class="font-headline font-extrabold text-2xl text-gray-900 dark:text-white">${numberData.number}</h3>
-                        <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest mt-1">Waiting for OTP / SMS...</p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 animate-pulse">
-                        <span class="material-symbols-outlined icon-fill">sms</span>
-                    </div>
-                </div>
-
-                <div id="sms-container" class="space-y-4 mb-8">
-                    <div class="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[24px] border border-gray-100 dark:border-gray-700">
-                        <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                        <p class="text-[12px] text-gray-500 font-bold uppercase tracking-widest">Listening for SMS...</p>
-                        <p class="text-[10px] text-gray-400 mt-2">This may take up to 2 minutes. Do not close this window.</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <button onclick="copyToClipboard('${numberData.number}')" class="w-full bg-primary/10 text-primary font-bold py-4 rounded-2xl interactive-btn">Copy Number</button>
-                    <button onclick="stopSMSPolling(); closeBottomSheet();" class="w-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold py-4 rounded-2xl interactive-btn">Cancel & Close</button>
+            container.classList.remove('hidden');
+            display.innerText = numberData.number || numberData.phone;
+            status.innerText = 'Waiting for OTP...';
+            
+            smsContainer.innerHTML = `
+                <div class="p-6 text-center bg-white/50 dark:bg-black/20 rounded-2xl border border-indigo-50/50 dark:border-gray-800">
+                    <div class="w-8 h-8 border-4 border-indigo-200 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+                    <p class="text-[11px] text-gray-400 font-medium">Listening for incoming SMS on this number...</p>
                 </div>
             `;
             
+            // Scroll to top of numbers content
+            document.getElementById('main-content').scrollTo({top: 0, behavior: 'smooth'});
+            
             startSMSPolling(numberData.number_id);
+        }
+
+        function cancelActiveNumber() {
+            stopSMSPolling();
+            document.getElementById('active-number-container').classList.add('hidden');
+            showToast('Number cancelled');
         }
 
         function startSMSPolling(numberId) {
@@ -2390,27 +2520,30 @@ function renderVerifyCountries(countries) {
         }
 
         function stopSMSPolling() {
-            if (smsPollingInterval) {
+            if (typeof smsPollingInterval !== 'undefined' && smsPollingInterval) {
                 clearInterval(smsPollingInterval);
                 smsPollingInterval = null;
             }
         }
 
         function displayReceivedSMS(sms) {
-            const container = document.getElementById('sms-container');
+            const container = document.getElementById('inline-sms-container');
+            const status = document.getElementById('active-number-status');
             if (!container) return;
+            
+            if (status) status.innerText = 'OTP Received';
             
             const codeMatch = sms.match(/\d{4,8}/);
             const otpCode = codeMatch ? codeMatch[0] : null;
             
             container.innerHTML = `
-                <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 p-6 rounded-[24px] text-center page-enter">
-                    <p class="text-[11px] font-bold text-green-600 uppercase tracking-widest mb-3">OTP Code Received</p>
-                    <h2 class="text-4xl font-black text-gray-900 dark:text-white tracking-widest mb-4">${otpCode || 'CHECK SMS'}</h2>
-                    <div class="p-4 bg-white/50 dark:bg-black/20 rounded-xl text-left text-sm font-medium text-gray-700 dark:text-gray-300 italic mb-4">
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-6 rounded-[24px] text-center page-enter">
+                    <p class="text-[11px] font-bold text-green-600 uppercase tracking-widest mb-2">OTP Code Received</p>
+                    <h2 class="text-3xl font-black text-gray-900 dark:text-white tracking-widest mb-3">${otpCode || 'CHECK SMS'}</h2>
+                    <div class="p-3 bg-white/50 dark:bg-black/20 rounded-xl text-left text-xs font-medium text-gray-700 dark:text-gray-300 italic mb-4">
                         "${sms}"
                     </div>
-                    <button onclick="copyToClipboard('${otpCode || sms}')" class="bg-green-600 text-white px-6 py-2 rounded-full text-xs font-bold shadow-lg shadow-green-600/20 interactive-btn">Copy Code</button>
+                    <button onclick="copyToClipboard('${otpCode || sms}')" class="bg-green-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-green-600/20 interactive-btn">Copy Code</button>
                 </div>
             `;
         }
